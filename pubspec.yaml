@@ -34,6 +34,13 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  flutter_secure_storage: ^10.0.0    # 安全存储敏感数据
+  local_auth: ^3.0.0                 # 生物识别
+  encrypt: ^5.0.3                    # AES加密解密
+  csv: ^6.0.0                        # CSV文件读写
+  shared_preferences: ^2.5.4         # 普通配置存储
+  path_provider: ^2.1.5              # 文件路径获取
+  permission_handler: ^12.0.1        # 权限申请（文件/生物识别）
 
 dev_dependencies:
   flutter_test:
