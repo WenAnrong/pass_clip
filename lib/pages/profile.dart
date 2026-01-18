@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/routers/index.dart';
 import 'package:pass_clip/services/import_export_service.dart';
+import 'package:pass_clip/services/auth_service.dart';
 import 'dart:convert' as convert;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -17,6 +18,18 @@ class ProfilePage extends StatelessWidget {
       ),
       body: ListView(
         children: [
+          // 修改解锁密码
+          Card(
+            margin: const EdgeInsets.all(16.0),
+            child: ListTile(
+              title: const Text('修改解锁密码'),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                // 跳转到密码修改页面
+                Navigator.pushNamed(context, '/passwordSetup');
+              },
+            ),
+          ),
           // 数据导出
           Card(
             margin: const EdgeInsets.all(16.0),
@@ -62,6 +75,43 @@ class ProfilePage extends StatelessWidget {
               },
             ),
           ),
+          // 生物识别设置
+          FutureBuilder<bool>(
+            future: AuthService().isBiometricAvailable(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data == true) {
+                return Card(
+                  margin: const EdgeInsets.all(16.0),
+                  child: ListTile(
+                    title: const Text('生物识别设置'),
+                    trailing: const Switch(value: true, onChanged: null),
+                    onTap: () {
+                      // 生物识别设置
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('生物识别设置'),
+                            content: const Text('生物识别功能已启用'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('确定'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                );
+              } else {
+                return const SizedBox();
+              }
+            },
+          ),
           // 关于我们
           Card(
             margin: const EdgeInsets.all(16.0),
@@ -92,6 +142,76 @@ class ProfilePage extends StatelessWidget {
                             Navigator.pop(context);
                           },
                           child: const Text('确定'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          // 退出登录
+          Card(
+            margin: const EdgeInsets.all(16.0),
+            child: ListTile(
+              title: const Text('退出登录', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('退出登录'),
+                      content: const Text('确认退出登录？'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('取消'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            // 执行退出登录
+                            await AuthService().saveLoginStatus(false);
+                            Navigator.pushReplacementNamed(context, '/login');
+                          },
+                          child: const Text('确认'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          // 清除所有数据
+          Card(
+            margin: const EdgeInsets.all(16.0),
+            child: ListTile(
+              title: const Text('清除所有数据', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('清除所有数据'),
+                      content: const Text('清除所有数据将删除所有账号密码及设置，不可恢复，是否确认？'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('取消'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // TODO: 实现清除所有数据的功能
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('功能开发中')),
+                            );
+                            Navigator.pop(context);
+                          },
+                          child: const Text('确认'),
                         ),
                       ],
                     );
