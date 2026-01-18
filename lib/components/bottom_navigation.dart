@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../pages/home.dart';
 import '../pages/add_account.dart';
 import '../pages/profile.dart';
+import '../routers/index.dart';
 
 class BottomNavigation extends StatefulWidget {
   const BottomNavigation({super.key});
@@ -15,7 +16,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const AddAccountPage(),
     const ProfilePage(),
   ];
 
@@ -36,10 +36,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
             label: '首页',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            label: '新增',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: '我的',
           ),
@@ -48,6 +44,14 @@ class _BottomNavigationState extends State<BottomNavigation> {
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/addAccount');
+        },
+        child: const Icon(Icons.add),
+        backgroundColor: Colors.orange,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

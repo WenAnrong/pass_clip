@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pass_clip/routers/index.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -11,51 +12,15 @@ class ProfilePage extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          // 修改解锁密码
-          Card(
-            margin: const EdgeInsets.all(16.0),
-            child: ListTile(
-              title: const Text('修改解锁密码'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {},
-            ),
-          ),
           // 分类管理
           Card(
             margin: const EdgeInsets.all(16.0),
             child: ListTile(
               title: const Text('分类管理'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {},
-            ),
-          ),
-          // 数据导出
-          Card(
-            margin: const EdgeInsets.all(16.0),
-            child: ListTile(
-              title: const Text('数据导出'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {},
-            ),
-          ),
-          // 数据导入
-          Card(
-            margin: const EdgeInsets.all(16.0),
-            child: ListTile(
-              title: const Text('数据导入'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {},
-            ),
-          ),
-          // 生物识别设置
-          Card(
-            margin: const EdgeInsets.all(16.0),
-            child: ListTile(
-              title: const Text('生物识别设置'),
-              trailing: Switch(
-                value: true,
-                onChanged: (value) {},
-              ),
+              onTap: () {
+                Navigator.pushNamed(context, '/categoryManagement');
+              },
             ),
           ),
           // 关于我们
@@ -64,26 +29,36 @@ class ProfilePage extends StatelessWidget {
             child: ListTile(
               title: const Text('关于我们'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {},
-            ),
-          ),
-          // 退出登录
-          Card(
-            margin: const EdgeInsets.all(16.0),
-            child: ListTile(
-              title: const Text('退出登录'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {},
-            ),
-          ),
-          // 清除所有数据
-          Card(
-            margin: const EdgeInsets.all(16.0),
-            child: ListTile(
-              title: const Text('清除所有数据'),
-              textColor: Colors.red,
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.red),
-              onTap: () {},
+              onTap: () {
+                // 关于我们页面
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('关于我们'),
+                      content: const Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('版本号：1.0.0'),
+                          SizedBox(height: 8.0),
+                          Text('开发信息：本地账号密码管理工具'),
+                          SizedBox(height: 8.0),
+                          Text('隐私政策：本APP所有数据仅存储在本地设备，无任何网络传输，保障数据安全。'),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('确定'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
