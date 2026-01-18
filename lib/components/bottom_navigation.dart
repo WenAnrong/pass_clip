@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../pages/home.dart';
-import '../pages/add_account.dart';
 import '../pages/profile.dart';
-import '../routers/index.dart';
 
 class BottomNavigation extends StatefulWidget {
   const BottomNavigation({super.key});
@@ -48,8 +46,8 @@ class _BottomNavigationState extends State<BottomNavigation> {
         onPressed: () {
           Navigator.pushNamed(context, '/addAccount');
         },
-        child: const Icon(Icons.add),
         backgroundColor: Colors.orange,
+        child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
-import 'package:pass_clip/routers/index.dart';
 
 class PasswordSetupPage extends StatefulWidget {
   const PasswordSetupPage({super.key, this.isFirstTime = true});

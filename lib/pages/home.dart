@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
-import 'package:pass_clip/routers/index.dart';
-import 'dart:math';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

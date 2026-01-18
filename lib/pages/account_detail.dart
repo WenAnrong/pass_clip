@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/services/storage_service.dart';
-import 'package:pass_clip/routers/index.dart';
 
 class AccountDetailPage extends StatefulWidget {
   final String? accountId;
