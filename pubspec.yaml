@@ -41,6 +41,7 @@ dependencies:
   shared_preferences: ^2.5.4         # 普通配置存储
   path_provider: ^2.1.5              # 文件路径获取
   permission_handler: ^12.0.1        # 权限申请（文件/生物识别）
+  file_picker: ^10.3.8               # 文件选择器
 
 dev_dependencies:
   flutter_test:
