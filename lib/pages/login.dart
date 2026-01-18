@@ -57,13 +57,13 @@ class _LoginPageState extends State<LoginPage> {
   // 处理数字输入
   void _onNumberPressed(String number) {
     if (_isAccountLocked()) return;
-    if (_password.length < 6) {
+    if (_password.length < 4) {
       setState(() {
         _password += number;
       });
 
       // 如果密码长度符合要求，自动进行验证
-      if (_password.length == 4 || _password.length == 6) {
+      if (_password.length == 4) {
         _verifyPassword();
       }
     }
@@ -242,7 +242,7 @@ class _LoginPageState extends State<LoginPage> {
 
   // 构建密码显示区域
   Widget _buildPasswordDisplay() {
-    final maxLength = 6;
+    final maxLength = 4;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

@@ -12,12 +12,40 @@ class AuthService {
   final LocalAuthentication _auth = LocalAuthentication();
 
   // 加密密钥和初始化向量
-  final Key _key = Key.fromLength(32);
-  final IV _iv = IV.fromLength(16);
-  final Encrypter _encrypter = Encrypter(AES(Key.fromLength(32)));
+  late Key _key;
+  late IV _iv;
+  late Encrypter _encrypter;
+  bool _isInitialized = false;
+
+  // 初始化加密参数
+  Future<void> _initialize() async {
+    if (_isInitialized) return;
+
+    // 尝试从存储中获取密钥和IV
+    final keyString = await _storage.read(key: 'encryption_key');
+    final ivString = await _storage.read(key: 'encryption_iv');
+
+    if (keyString != null && ivString != null) {
+      // 使用已存储的密钥和IV
+      _key = Key.fromBase64(keyString);
+      _iv = IV.fromBase64(ivString);
+    } else {
+      // 生成新的密钥和IV
+      _key = Key.fromLength(32);
+      _iv = IV.fromLength(16);
+
+      // 存储密钥和IV
+      await _storage.write(key: 'encryption_key', value: _key.base64);
+      await _storage.write(key: 'encryption_iv', value: _iv.base64);
+    }
+
+    _encrypter = Encrypter(AES(_key));
+    _isInitialized = true;
+  }
 
   // 保存密码
   Future<void> savePassword(String password) async {
+    await _initialize();
     // 加密密码
     final encryptedPassword = _encrypter.encrypt(password, iv: _iv);
     await _storage.write(key: 'encrypted_password', value: encryptedPassword.base64);
@@ -27,6 +55,8 @@ class AuthService {
   Future<bool> verifyPassword(String password) async {
     final encryptedPassword = await _storage.read(key: 'encrypted_password');
     if (encryptedPassword == null) return false;
+    
+    await _initialize();
     
     try {
       final decryptedPassword = _encrypter.decrypt(Encrypted.fromBase64(encryptedPassword), iv: _iv);

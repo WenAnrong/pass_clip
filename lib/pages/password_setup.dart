@@ -17,15 +17,15 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
   bool _isSecondStep = false;
   bool _isLoading = false;
 
-  // 检查密码长度是否为4或6位
+  // 检查密码长度是否为4位
   bool _isPasswordValid(String password) {
-    return password.length == 4 || password.length == 6;
+    return password.length == 4;
   }
 
   // 处理数字输入
   void _onNumberPressed(String number) {
     if (_isSecondStep) {
-      if (_confirmPassword.length < 6) {
+      if (_confirmPassword.length < 4) {
         setState(() {
           _confirmPassword += number;
         });
@@ -36,7 +36,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
         }
       }
     } else {
-      if (_password.length < 6) {
+      if (_password.length < 4) {
         setState(() {
           _password += number;
         });
@@ -154,7 +154,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
   // 构建密码显示区域
   Widget _buildPasswordDisplay() {
     final password = _isSecondStep ? _confirmPassword : _password;
-    final maxLength = 6;
+    final maxLength = 4;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -200,7 +200,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
                 child: Text(
                   _isSecondStep
                       ? '请再次输入密码确认' 
-                      : '请设置4/6位纯数字解锁密码，保护你的账号安全',
+                      : '请设置4位纯数字解锁密码，保护你的账号安全',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 18.0),
                 ),

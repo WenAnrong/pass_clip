@@ -8,8 +8,39 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  final AuthService _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // 在应用进入后台、暂停或完全退出时，清除登录状态
+    if (state == AppLifecycleState.detached || 
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      // 应用退出或进入后台时，清除登录状态
+      _authService.saveLoginStatus(false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
