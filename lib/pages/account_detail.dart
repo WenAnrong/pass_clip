@@ -28,7 +28,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
     setState(() {
       _isLoading = true;
     });
-    
+
     if (widget.accountId != null) {
       final accounts = await _storageService.getAccounts();
       _account = accounts.firstWhere(
@@ -55,7 +55,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
         url: 'https://weixin.qq.com',
       );
     }
-    
+
     setState(() {
       _isLoading = false;
     });
@@ -64,17 +64,15 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
   // 复制文本到剪贴板
   void _copyToClipboard(String text, String message) {
     // 这里简化处理，实际应用中需要使用clipboard库
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _account == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -83,10 +81,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/addAccount',
-              );
+              Navigator.pushNamed(context, '/addAccount');
             },
             icon: const Icon(Icons.edit),
           ),
@@ -130,7 +125,9 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                   const Divider(),
                   ListTile(
                     title: const Text('密码'),
-                    subtitle: Text(_showPassword ? _account!.password : '••••••••'),
+                    subtitle: Text(
+                      _showPassword ? _account!.password : '••••••••',
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -140,7 +137,11 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                               _showPassword = !_showPassword;
                             });
                           },
-                          icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
+                          icon: Icon(
+                            _showPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
                         ),
                         IconButton(
                           onPressed: () {
@@ -151,15 +152,13 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                       ],
                     ),
                   ),
-                  if (_account!.url != null)
-                    const Divider(),
+                  if (_account!.url != null) const Divider(),
                   if (_account!.url != null)
                     ListTile(
                       title: const Text('网址'),
                       subtitle: Text(_account!.url!),
                     ),
-                  if (_account!.remark != null)
-                    const Divider(),
+                  if (_account!.remark != null) const Divider(),
                   if (_account!.remark != null)
                     ListTile(
                       title: const Text('备注'),
@@ -172,10 +171,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
             // 最后修改时间
             Text(
               '最后修改时间：${_account!.updatedAt.toString().substring(0, 10)}',
-              style: const TextStyle(
-                fontSize: 14.0,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 14.0, color: Colors.grey),
             ),
           ],
         ),

@@ -11,9 +11,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('我的'),
-      ),
+      appBar: AppBar(title: const Text('我的')),
       body: ListView(
         children: [
           // 修改解锁密码
@@ -262,16 +260,16 @@ class _ExportPageState extends State<ExportPage> {
       await file.writeAsString(exportData);
 
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('导出成功：$path')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('导出成功：$path')));
     } catch (e) {
       setState(() {
         _isExporting = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('导出失败：$e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('导出失败：$e')));
     }
   }
 
@@ -285,10 +283,7 @@ class _ExportPageState extends State<ExportPage> {
         children: [
           const Text(
             '数据导出',
-            style: TextStyle(
-              fontSize: 20.0,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16.0),
           const Text('选择导出格式：'),
@@ -379,18 +374,18 @@ class _ImportPageState extends State<ImportPage> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('选择文件失败：$e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('选择文件失败：$e')));
     }
   }
 
   // 导入数据
   Future<void> _importData() async {
     if (_fileContent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先选择文件')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请先选择文件')));
       return;
     }
 
@@ -402,7 +397,9 @@ class _ImportPageState extends State<ImportPage> {
       int importedCount;
 
       if (_fileName!.endsWith('.json')) {
-        importedCount = await _importExportService.importFromJson(_fileContent!);
+        importedCount = await _importExportService.importFromJson(
+          _fileContent!,
+        );
       } else if (_fileName!.endsWith('.csv')) {
         importedCount = await _importExportService.importFromCsv(_fileContent!);
       } else {
@@ -410,16 +407,16 @@ class _ImportPageState extends State<ImportPage> {
       }
 
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('导入成功，共导入$importedCount条账号信息')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('导入成功，共导入$importedCount条账号信息')));
     } catch (e) {
       setState(() {
         _isImporting = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('导入失败：$e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('导入失败：$e')));
     }
   }
 
@@ -433,10 +430,7 @@ class _ImportPageState extends State<ImportPage> {
         children: [
           const Text(
             '数据导入',
-            style: TextStyle(
-              fontSize: 20.0,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16.0),
           const Text('选择导入文件（支持JSON和CSV格式）：'),

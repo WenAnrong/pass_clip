@@ -54,7 +54,9 @@ class StorageService {
   // 保存分类列表
   Future<void> saveCategories(List<Category> categories) async {
     final prefs = await _getPrefs();
-    final categoriesJson = categories.map((category) => category.toJson()).toList();
+    final categoriesJson = categories
+        .map((category) => category.toJson())
+        .toList();
     await prefs.setString(_categoriesKey, json.encode(categoriesJson));
   }
 
@@ -75,7 +77,9 @@ class StorageService {
       return defaultCategories;
     }
     final categoriesList = json.decode(categoriesJson) as List;
-    return categoriesList.map((category) => Category.fromJson(category)).toList();
+    return categoriesList
+        .map((category) => Category.fromJson(category))
+        .toList();
   }
 
   // 保存单个分类
@@ -95,7 +99,7 @@ class StorageService {
     final categories = await getCategories();
     categories.removeWhere((category) => category.name == categoryName);
     await saveCategories(categories);
-    
+
     // 将该分类下的账号移至未分类
     final accounts = await getAccounts();
     for (var account in accounts) {
@@ -110,10 +114,14 @@ class StorageService {
   // 更新分类下的账号数量
   Future<void> updateCategoryCount(String categoryName) async {
     final accounts = await getAccounts();
-    final count = accounts.where((account) => account.category == categoryName).length;
-    
+    final count = accounts
+        .where((account) => account.category == categoryName)
+        .length;
+
     final categories = await getCategories();
-    final index = categories.indexWhere((category) => category.name == categoryName);
+    final index = categories.indexWhere(
+      (category) => category.name == categoryName,
+    );
     if (index != -1) {
       categories[index].count = count;
       await saveCategories(categories);

@@ -48,18 +48,24 @@ class AuthService {
     await _initialize();
     // 加密密码
     final encryptedPassword = _encrypter.encrypt(password, iv: _iv);
-    await _storage.write(key: 'encrypted_password', value: encryptedPassword.base64);
+    await _storage.write(
+      key: 'encrypted_password',
+      value: encryptedPassword.base64,
+    );
   }
 
   // 验证密码
   Future<bool> verifyPassword(String password) async {
     final encryptedPassword = await _storage.read(key: 'encrypted_password');
     if (encryptedPassword == null) return false;
-    
+
     await _initialize();
-    
+
     try {
-      final decryptedPassword = _encrypter.decrypt(Encrypted.fromBase64(encryptedPassword), iv: _iv);
+      final decryptedPassword = _encrypter.decrypt(
+        Encrypted.fromBase64(encryptedPassword),
+        iv: _iv,
+      );
       return decryptedPassword == password;
     } catch (e) {
       return false;
@@ -93,9 +99,7 @@ class AuthService {
   // 进行生物识别验证
   Future<bool> authenticateWithBiometrics() async {
     try {
-      return await _auth.authenticate(
-        localizedReason: '使用生物识别登录',
-      );
+      return await _auth.authenticate(localizedReason: '使用生物识别登录');
     } catch (e) {
       return false;
     }
@@ -119,10 +123,14 @@ class AuthService {
 
   // 生成随机密码
   String generateRandomPassword(int length) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%^&*()';
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%^&*()';
     final random = Random();
     return String.fromCharCodes(
-      Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
+      Iterable.generate(
+        length,
+        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+      ),
     );
   }
 }

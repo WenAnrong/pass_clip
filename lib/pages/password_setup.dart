@@ -56,7 +56,10 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
     if (_isSecondStep) {
       if (_confirmPassword.isNotEmpty) {
         setState(() {
-          _confirmPassword = _confirmPassword.substring(0, _confirmPassword.length - 1);
+          _confirmPassword = _confirmPassword.substring(
+            0,
+            _confirmPassword.length - 1,
+          );
         });
       }
     } else {
@@ -78,9 +81,9 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
         _confirmPassword = '';
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('两次密码不一致，请重新输入')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('两次密码不一致，请重新输入')));
     } else {
       // 密码一致，保存密码
       _savePassword();
@@ -98,18 +101,18 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
       await _authService.saveLoginStatus(true);
 
       // 显示成功提示
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('密码设置成功')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('密码设置成功')));
 
       // 延迟导航到主界面
       Future.delayed(const Duration(seconds: 1), () {
         Navigator.pushReplacementNamed(context, '/');
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('密码设置失败：$e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('密码设置失败：$e')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -119,7 +122,20 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
 
   // 构建数字键盘
   Widget _buildNumberPad() {
-    final numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '删除'];
+    final numbers = [
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '',
+      '0',
+      '删除',
+    ];
 
     return GridView.count(
       crossAxisCount: 3,
@@ -133,13 +149,15 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
         }
 
         return ElevatedButton(
-          onPressed: _isLoading ? null : () {
-            if (number == '删除') {
-              _onDeletePressed();
-            } else {
-              _onNumberPressed(number);
-            }
-          },
+          onPressed: _isLoading
+              ? null
+              : () {
+                  if (number == '删除') {
+                    _onDeletePressed();
+                  } else {
+                    _onNumberPressed(number);
+                  }
+                },
           style: ElevatedButton.styleFrom(
             shape: CircleBorder(),
             padding: const EdgeInsets.all(20.0),
@@ -198,9 +216,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  _isSecondStep
-                      ? '请再次输入密码确认' 
-                      : '请设置4位纯数字解锁密码，保护你的账号安全',
+                  _isSecondStep ? '请再次输入密码确认' : '请设置4位纯数字解锁密码，保护你的账号安全',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 18.0),
                 ),
@@ -214,9 +230,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),

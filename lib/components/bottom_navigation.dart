@@ -12,10 +12,7 @@ class BottomNavigation extends StatefulWidget {
 class _BottomNavigationState extends State<BottomNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const HomePage(),
-    const ProfilePage(),
-  ];
+  final List<Widget> _pages = [const HomePage(), const ProfilePage()];
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +26,8 @@ class _BottomNavigationState extends State<BottomNavigation> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '首页',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '我的',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
         ],
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,

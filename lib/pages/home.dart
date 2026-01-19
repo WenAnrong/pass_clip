@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
+import 'package:pass_clip/utils/refresh_notifier.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,6 +13,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final StorageService _storageService = StorageService();
+  // 刷新通知回调函数
+  late final VoidCallback _refreshCallback;
   List<Account> _accounts = [];
   List<Category> _categories = [];
   String _selectedCategory = '全部分类';
@@ -23,6 +26,21 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadData();
+    // 定义刷新回调函数
+    _refreshCallback = () {
+      if (mounted) {
+        _loadData(); // 收到通知后，重新加载数据
+      }
+    };
+    // 监听刷新通知
+    RefreshNotifier.instance.addListener(_refreshCallback);
+  }
+
+  @override
+  void dispose() {
+    // 取消刷新通知器订阅
+    RefreshNotifier.instance.removeListener(_refreshCallback);
+    super.dispose();
   }
 
   // 加载数据
@@ -30,16 +48,16 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _isLoading = true;
     });
-    
+
     _accounts = await _storageService.getAccounts();
     _categories = await _storageService.getCategories();
-    
+
     // 更新分类计数
     for (var category in _categories) {
       await _storageService.updateCategoryCount(category.name);
     }
     _categories = await _storageService.getCategories();
-    
+
     setState(() {
       _isLoading = false;
     });
@@ -48,22 +66,27 @@ class _HomePageState extends State<HomePage> {
   // 搜索和筛选账号
   List<Account> _getFilteredAccounts() {
     List<Account> filtered = _accounts;
-    
+
     // 按分类筛选
     if (_selectedCategory != '全部分类') {
-      filtered = filtered.where((account) => account.category == _selectedCategory).toList();
+      filtered = filtered
+          .where((account) => account.category == _selectedCategory)
+          .toList();
     }
-    
+
     // 按搜索文本筛选
     if (_searchText.isNotEmpty) {
       final searchLower = _searchText.toLowerCase();
-      filtered = filtered.where((account) => 
-        account.platform.toLowerCase().contains(searchLower) ||
-        account.username.toLowerCase().contains(searchLower) ||
-        account.category.toLowerCase().contains(searchLower)
-      ).toList();
+      filtered = filtered
+          .where(
+            (account) =>
+                account.platform.toLowerCase().contains(searchLower) ||
+                account.username.toLowerCase().contains(searchLower) ||
+                account.category.toLowerCase().contains(searchLower),
+          )
+          .toList();
     }
-    
+
     // 排序
     switch (_sortOption) {
       case '按名称升序':
@@ -79,7 +102,7 @@ class _HomePageState extends State<HomePage> {
         filtered.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
         break;
     }
-    
+
     return filtered;
   }
 
@@ -94,7 +117,9 @@ class _HomePageState extends State<HomePage> {
             children: [
               ListTile(
                 title: const Text('按名称升序'),
-                trailing: _sortOption == '按名称升序' ? const Icon(Icons.check) : null,
+                trailing: _sortOption == '按名称升序'
+                    ? const Icon(Icons.check)
+                    : null,
                 onTap: () {
                   setState(() {
                     _sortOption = '按名称升序';
@@ -104,7 +129,9 @@ class _HomePageState extends State<HomePage> {
               ),
               ListTile(
                 title: const Text('按名称降序'),
-                trailing: _sortOption == '按名称降序' ? const Icon(Icons.check) : null,
+                trailing: _sortOption == '按名称降序'
+                    ? const Icon(Icons.check)
+                    : null,
                 onTap: () {
                   setState(() {
                     _sortOption = '按名称降序';
@@ -114,7 +141,9 @@ class _HomePageState extends State<HomePage> {
               ),
               ListTile(
                 title: const Text('按时间最新'),
-                trailing: _sortOption == '按时间最新' ? const Icon(Icons.check) : null,
+                trailing: _sortOption == '按时间最新'
+                    ? const Icon(Icons.check)
+                    : null,
                 onTap: () {
                   setState(() {
                     _sortOption = '按时间最新';
@@ -124,7 +153,9 @@ class _HomePageState extends State<HomePage> {
               ),
               ListTile(
                 title: const Text('按时间最早'),
-                trailing: _sortOption == '按时间最早' ? const Icon(Icons.check) : null,
+                trailing: _sortOption == '按时间最早'
+                    ? const Icon(Icons.check)
+                    : null,
                 onTap: () {
                   setState(() {
                     _sortOption = '按时间最早';
@@ -182,9 +213,9 @@ class _HomePageState extends State<HomePage> {
                 await _storageService.deleteAccount(account.id);
                 await _loadData();
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('删除成功')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('删除成功')));
               },
               child: const Text('删除'),
             ),
@@ -224,10 +255,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('账号密码管理'),
         actions: [
-          IconButton(
-            onPressed: _showSortOptions,
-            icon: const Icon(Icons.sort),
-          ),
+          IconButton(onPressed: _showSortOptions, icon: const Icon(Icons.sort)),
           IconButton(
             onPressed: _showMoreOptions,
             icon: const Icon(Icons.more_vert),
@@ -281,7 +309,9 @@ class _HomePageState extends State<HomePage> {
                           },
                           selectedColor: Theme.of(context).primaryColor,
                           labelStyle: TextStyle(
-                            color: _selectedCategory == category ? Colors.white : null,
+                            color: _selectedCategory == category
+                                ? Colors.white
+                                : null,
                           ),
                         ),
                       );
@@ -303,8 +333,14 @@ class _HomePageState extends State<HomePage> {
                                 children: [
                                   Text(_formatUsername(account.username)),
                                   Text(
-                                    account.updatedAt.toString().substring(0, 10),
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                    account.updatedAt.toString().substring(
+                                      0,
+                                      10,
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ],
                               ),

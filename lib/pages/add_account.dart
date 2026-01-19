@@ -4,6 +4,8 @@ import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'dart:math';
 
+import 'package:pass_clip/utils/refresh_notifier.dart';
+
 class AddAccountPage extends StatefulWidget {
   final Account? account;
 
@@ -18,7 +20,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   List<Category> _categories = [];
   bool _isLoading = true;
   bool _isObscure = true;
-  
+
   // 表单控制器
   final _formKey = GlobalKey<FormState>();
   final _platformController = TextEditingController();
@@ -26,7 +28,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   final _passwordController = TextEditingController();
   final _remarkController = TextEditingController();
   final _urlController = TextEditingController();
-  
+
   // 分类选择
   String _selectedCategory = '未分类';
 
@@ -34,7 +36,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   void initState() {
     super.initState();
     _loadCategories();
-    
+
     // 如果是编辑模式，加载现有数据
     if (widget.account != null) {
       _platformController.text = widget.account!.platform;
@@ -56,10 +58,14 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
   // 生成随机密码
   void _generatePassword() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%^&*()';
+    const chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%^&*()';
     final random = Random();
     final password = String.fromCharCodes(
-      Iterable.generate(12, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
+      Iterable.generate(
+        12,
+        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+      ),
     );
     _passwordController.text = password;
   }
@@ -70,27 +76,33 @@ class _AddAccountPageState extends State<AddAccountPage> {
       setState(() {
         _isLoading = true;
       });
-      
+
       final account = Account(
-        id: widget.account?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id:
+            widget.account?.id ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         platform: _platformController.text,
         username: _usernameController.text,
         password: _passwordController.text,
         category: _selectedCategory,
-        remark: _remarkController.text.isNotEmpty ? _remarkController.text : null,
+        remark: _remarkController.text.isNotEmpty
+            ? _remarkController.text
+            : null,
         url: _urlController.text.isNotEmpty ? _urlController.text : null,
         createdAt: widget.account?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      
+
       await _storageService.saveAccount(account);
       await _storageService.updateCategoryCount(_selectedCategory);
-      
+
       setState(() {
         _isLoading = false;
       });
-      
+
+      // 保存成功后，发送刷新通知
       Navigator.pop(context);
+      RefreshNotifier.instance.notifyRefresh();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(widget.account != null ? '更新成功' : '保存成功')),
       );
@@ -100,9 +112,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.account != null ? '编辑账号密码' : '新增账号密码'),
-      ),
+      appBar: AppBar(title: Text(widget.account != null ? '编辑账号密码' : '新增账号密码')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -158,7 +168,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
                                   _isObscure = !_isObscure;
                                 });
                               },
-                              icon: Icon(_isObscure ? Icons.visibility : Icons.visibility_off),
+                              icon: Icon(
+                                _isObscure
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
                             ),
                             IconButton(
                               onPressed: _generatePassword,
@@ -185,15 +199,15 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     const SizedBox(height: 16.0),
                     // 分类
                     DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: '分类',
-                      ),
+                      decoration: const InputDecoration(labelText: '分类'),
                       value: _selectedCategory,
                       items: _categories
-                          .map((category) => DropdownMenuItem(
-                                value: category.name,
-                                child: Text(category.name),
-                              ))
+                          .map(
+                            (category) => DropdownMenuItem(
+                              value: category.name,
+                              child: Text(category.name),
+                            ),
+                          )
                           .toList(),
                       onChanged: (value) {
                         if (value != null) {

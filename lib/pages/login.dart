@@ -92,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
         // 密码正确，重置失败次数
         _failedAttempts = 0;
         _lockUntil = null;
-        
+
         // 保存登录状态
         await _authService.saveLoginStatus(true);
 
@@ -117,9 +117,9 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('验证失败，请重试')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('验证失败，请重试')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -142,14 +142,14 @@ class _LoginPageState extends State<LoginPage> {
         await _authService.saveLoginStatus(true);
         Navigator.pushReplacementNamed(context, '/');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('生物识别失败，请重试或使用密码登录')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('生物识别失败，请重试或使用密码登录')));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('生物识别失败，请重试')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('生物识别失败，请重试')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -183,16 +183,19 @@ class _LoginPageState extends State<LoginPage> {
                 // 清除本地存储的所有数据
                 await _authService.saveLoginStatus(false);
                 // TODO: 清除所有账号密码数据
-                
+
                 // 跳转到密码设置页面
                 Navigator.pushReplacement(
-                  context, 
-                  MaterialPageRoute(builder: (context) => const PasswordSetupPage(isFirstTime: false)),
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const PasswordSetupPage(isFirstTime: false),
+                  ),
                 );
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('重置失败，请重试')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('重置失败，请重试')));
               } finally {
                 setState(() {
                   _isLoading = false;
@@ -208,7 +211,20 @@ class _LoginPageState extends State<LoginPage> {
 
   // 构建数字键盘
   Widget _buildNumberPad() {
-    final numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '删除'];
+    final numbers = [
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '',
+      '0',
+      '删除',
+    ];
 
     return GridView.count(
       crossAxisCount: 3,
@@ -222,13 +238,15 @@ class _LoginPageState extends State<LoginPage> {
         }
 
         return ElevatedButton(
-          onPressed: (_isLoading || _isAccountLocked()) ? null : () {
-            if (number == '删除') {
-              _onDeletePressed();
-            } else {
-              _onNumberPressed(number);
-            }
-          },
+          onPressed: (_isLoading || _isAccountLocked())
+              ? null
+              : () {
+                  if (number == '删除') {
+                    _onDeletePressed();
+                  } else {
+                    _onNumberPressed(number);
+                  }
+                },
           style: ElevatedButton.styleFrom(
             shape: CircleBorder(),
             padding: const EdgeInsets.all(20.0),
@@ -254,7 +272,9 @@ class _LoginPageState extends State<LoginPage> {
           decoration: BoxDecoration(
             border: Border.all(color: Colors.orange, width: 2.0),
             borderRadius: BorderRadius.circular(8.0),
-            color: index < _password.length ? Colors.orange : Colors.transparent,
+            color: index < _password.length
+                ? Colors.orange
+                : Colors.transparent,
           ),
         );
       }),
@@ -297,7 +317,10 @@ class _LoginPageState extends State<LoginPage> {
                         icon: const Icon(Icons.fingerprint),
                         label: const Text('使用生物识别登录'),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32.0,
+                            vertical: 12.0,
+                          ),
                           textStyle: const TextStyle(fontSize: 18.0),
                         ),
                       ),
@@ -316,9 +339,7 @@ class _LoginPageState extends State<LoginPage> {
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),

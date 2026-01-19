@@ -21,8 +21,8 @@ class Account {
     this.url,
     DateTime? createdAt,
     DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   // 将对象转换为Map
   Map<String, dynamic> toMap() {
@@ -58,5 +58,6 @@ class Account {
   String toJson() => json.encode(toMap());
 
   // 从JSON字符串创建对象
-  factory Account.fromJson(String source) => Account.fromMap(json.decode(source));
+  factory Account.fromJson(String source) =>
+      Account.fromMap(json.decode(source));
 }

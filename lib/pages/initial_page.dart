@@ -30,7 +30,9 @@ class _InitialPageState extends State<InitialPage> {
         // 未设置密码，跳转到密码设置页面
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const PasswordSetupPage(isFirstTime: true)),
+          MaterialPageRoute(
+            builder: (context) => const PasswordSetupPage(isFirstTime: true),
+          ),
         );
       } else {
         // 已设置密码，检查登录状态
@@ -50,7 +52,9 @@ class _InitialPageState extends State<InitialPage> {
       // 发生错误，默认跳转到密码设置页面
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const PasswordSetupPage(isFirstTime: true)),
+        MaterialPageRoute(
+          builder: (context) => const PasswordSetupPage(isFirstTime: true),
+        ),
       );
     } finally {
       setState(() {

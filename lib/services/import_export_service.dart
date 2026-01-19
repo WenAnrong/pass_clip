@@ -100,8 +100,12 @@ class ImportExportService {
             category: row[3]?.toString() ?? '未分类',
             remark: row.length > 4 ? row[4]?.toString() : null,
             url: row.length > 5 ? row[5]?.toString() : null,
-            createdAt: row.length > 6 ? DateTime.parse(row[6].toString()) : DateTime.now(),
-            updatedAt: row.length > 7 ? DateTime.parse(row[7].toString()) : DateTime.now(),
+            createdAt: row.length > 6
+                ? DateTime.parse(row[6].toString())
+                : DateTime.now(),
+            updatedAt: row.length > 7
+                ? DateTime.parse(row[7].toString())
+                : DateTime.now(),
           );
 
           await _storageService.saveAccount(account);
@@ -121,7 +125,8 @@ class ImportExportService {
   // 生成导出文件名
   String generateExportFileName(String format) {
     final now = DateTime.now();
-    final dateString = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final dateString =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
     return 'password_manager_$dateString.$format';
   }
 }
