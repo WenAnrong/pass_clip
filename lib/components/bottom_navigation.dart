@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../pages/home.dart';
-import '../pages/profile.dart';
+import 'package:pass_clip/pages/home.dart';
+import 'package:pass_clip/pages/profile.dart';
 
 class BottomNavigation extends StatefulWidget {
   const BottomNavigation({super.key});
