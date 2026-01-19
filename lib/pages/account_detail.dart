@@ -186,7 +186,6 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
             Chip(
               label: Text(_account!.category),
               backgroundColor: Theme.of(context).primaryColor,
-              labelStyle: const TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 24.0),
             // 账号信息
@@ -267,10 +266,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
             ),
             const SizedBox(height: 24.0),
             // 最后修改时间
-            Text(
-              '最后修改时间：${_account!.updatedAt.toString().substring(0, 10)}',
-              style: const TextStyle(fontSize: 14.0, color: Colors.grey),
-            ),
+            Text('最后修改时间：${_account!.updatedAt.toString().substring(0, 10)}'),
           ],
         ),
       ),

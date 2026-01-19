@@ -12,8 +12,6 @@ final appTheme = ThemeData(
     seedColor: primaryThemeColor,
     // 显式指定主色（确保核心色为#fee497）
     primary: primaryThemeColor,
-    // 亮色模式（默认）
-    brightness: Brightness.light,
   ),
   // 让AppBar、按钮等组件默认继承主题色
   appBarTheme: AppBarTheme(

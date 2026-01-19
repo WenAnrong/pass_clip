@@ -297,11 +297,6 @@ class _HomePageState extends State<HomePage> {
                             });
                           },
                           selectedColor: Theme.of(context).primaryColor,
-                          labelStyle: TextStyle(
-                            color: _selectedCategory == category
-                                ? Colors.white
-                                : null,
-                          ),
                         ),
                       );
                     },

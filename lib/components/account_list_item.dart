@@ -34,23 +34,14 @@ class AccountListItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  account.username,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
+                Text(account.username),
                 const SizedBox(height: 2),
-                Text(
-                  account.updatedAt.toString().substring(0, 10),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                Text(account.updatedAt.toString().substring(0, 10)),
               ],
             ),
             Padding(
               padding: const EdgeInsets.only(left: 12),
-              child: Text(
-                account.category,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
+              child: Text(account.category),
             ),
           ],
         ),
