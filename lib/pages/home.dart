@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pass_clip/components/account_list_item.dart';
 import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
@@ -314,28 +315,8 @@ class _HomePageState extends State<HomePage> {
                           itemCount: filteredAccounts.length,
                           itemBuilder: (context, index) {
                             final account = filteredAccounts[index];
-                            return ListTile(
-                              title: Text(account.platform),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(account.username),
-                                  Text(
-                                    account.updatedAt.toString().substring(
-                                      0,
-                                      10,
-                                    ),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              trailing: Chip(
-                                label: Text(account.category),
-                                labelStyle: const TextStyle(fontSize: 10),
-                              ),
+                            return AccountListItem(
+                              account: account,
                               onTap: () {
                                 Navigator.pushNamed(
                                   context,
