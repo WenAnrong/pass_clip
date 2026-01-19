@@ -3,11 +3,10 @@ import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'dart:math';
-
 import 'package:pass_clip/utils/refresh_notifier.dart';
 
 class AddAccountPage extends StatefulWidget {
-  final Account? account;
+  final Account? account; // 编辑模式时传入的已有账号，新增时为null
 
   const AddAccountPage({super.key, this.account});
 
@@ -35,7 +34,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   @override
   void initState() {
     super.initState();
-    _loadCategories();
+    _loadCategories(); // 加载分类列表（初始化下拉选择框的选项）
 
     // 如果是编辑模式，加载现有数据
     if (widget.account != null) {
@@ -61,6 +60,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
     const chars =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%^&*()';
     final random = Random();
+    // 生成12位随机密码：遍历12次，每次从字符集随机取一个字符
     final password = String.fromCharCodes(
       Iterable.generate(
         12,
@@ -72,11 +72,20 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
   // 保存账号
   Future<void> _saveAccount() async {
+    // 先检查页面是否存活，避免无效操作
+    if (!mounted) return;
+
+    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    // 验证表单所有字段是否填写完整
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
+      // 构建账号对象
       final account = Account(
         id:
             widget.account?.id ??
@@ -101,9 +110,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
       });
 
       // 保存成功后，发送刷新通知
-      Navigator.pop(context);
+      navigator.pop();
       RefreshNotifier.instance.notifyRefresh();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text(widget.account != null ? '更新成功' : '保存成功')),
       );
     }
@@ -200,7 +209,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     // 分类
                     DropdownButtonFormField<String>(
                       decoration: const InputDecoration(labelText: '分类'),
-                      value: _selectedCategory,
+                      initialValue: _selectedCategory,
                       items: _categories
                           .map(
                             (category) => DropdownMenuItem(
