@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
-import 'package:pass_clip/pages/password_setup.dart';
 import 'dart:async';
 
 class LoginPage extends StatefulWidget {
@@ -257,66 +256,56 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // 忘记密码（核心修复：跳转前加mounted检查）
-  void _onForgotPassword() {
+  // 显示密码提示
+  void _onPasswordHint() {
     // 提前缓存需要的对象
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('忘记密码'),
-        content: const Text('重置密码将清空所有数据，是否确认？'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              // 清除所有数据
-              if (mounted) {
-                setState(() {
-                  _isLoading = true;
-                });
-              }
+    setState(() {
+      _isLoading = true;
+    });
 
-              try {
-                // 清除本地存储的所有数据
-                await _authService.saveLoginStatus(false);
-                // TODO: 清除所有账号密码数据
+    // 获取密码提示
+    _authService
+        .getPasswordHint()
+        .then((hint) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
 
-                // 修复关键：跳转前检查mounted
-                if (mounted) {
-                  // 跳转到密码设置页面
-                  navigator.pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const PasswordSetupPage(isFirstTime: false),
-                    ),
-                  );
-                }
-              } catch (e) {
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(content: Text('重置失败，请重试')),
-                );
-              } finally {
-                if (mounted) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                }
-              }
-            },
-            child: const Text('确认'),
-          ),
-        ],
-      ),
-    );
+            // 显示密码提示对话框
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('密码提示'),
+                content: Text(
+                  hint != null && hint.isNotEmpty ? '你的密码提示：$hint' : '你未设置密码提示',
+                  textAlign: TextAlign.center,
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('确定'),
+                  ),
+                ],
+              ),
+            );
+          }
+        })
+        .catchError((e) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+
+            scaffoldMessenger.showSnackBar(
+              const SnackBar(content: Text('获取密码提示失败，请重试')),
+            );
+          }
+        });
   }
 
   // 构建数字键盘
@@ -440,8 +429,8 @@ class _LoginPageState extends State<LoginPage> {
               if (!_isAccountLocked()) _buildNumberPad(),
               const Spacer(),
               TextButton(
-                onPressed: _onForgotPassword,
-                child: const Text('忘记密码？'),
+                onPressed: _onPasswordHint,
+                child: const Text('密码提示？'),
               ),
               const SizedBox(height: 16.0),
             ],

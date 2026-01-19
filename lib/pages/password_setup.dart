@@ -15,6 +15,8 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
   String _password = ''; // 密码
   String _confirmPassword = ''; // 确认密码
   bool _isSecondStep = false; // 是否是确认密码步骤
+  bool _isSettingHint = false; // 是否是设置密码提示步骤
+  String _passwordHint = ''; // 密码提示
   bool _isLoading = false; // 是否正在加载
 
   // 检查密码长度是否为4位
@@ -92,9 +94,8 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
 
   // 保存密码
   Future<void> _savePassword() async {
-    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+    // 提前缓存ScaffoldMessenger（避免跨异步用context）
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
 
     setState(() {
       _isLoading = true;
@@ -107,18 +108,54 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
       // 显示成功提示
       scaffoldMessenger.showSnackBar(const SnackBar(content: Text('密码设置成功')));
 
-      // 延迟导航到主界面
-      Future.delayed(const Duration(seconds: 1), () {
-        navigator.pushReplacementNamed('/');
+      // 进入密码提示设置步骤
+      setState(() {
+        _isSettingHint = true;
+        _isLoading = false;
       });
     } catch (e) {
       // 显示失败提示
       scaffoldMessenger.showSnackBar(SnackBar(content: Text('密码设置失败：$e')));
-    } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  // 保存密码提示
+  Future<void> _savePasswordHint() async {
+    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _authService.savePasswordHint(_passwordHint); // 保存密码提示到本地存储
+
+      // 显示成功提示
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('密码提示设置成功')));
+
+      // 延迟导航到主界面，清除所有之前的界面
+      Future.delayed(const Duration(milliseconds: 200), () {
+        navigator.pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+      });
+    } catch (e) {
+      // 显示失败提示
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('密码提示设置失败：$e')));
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // 处理密码提示输入变化
+  void _onHintChanged(String value) {
+    setState(() {
+      _passwordHint = value;
+    });
   }
 
   // 构建数字键盘
@@ -192,12 +229,69 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
     );
   }
 
+  // 构建密码提示设置界面
+  Widget _buildPasswordHintSetup() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            '请设置密码提示，帮助你回忆密码（可选）',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 18.0),
+          ),
+        ),
+        const SizedBox(height: 32.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 48.0),
+          child: TextField(
+            onChanged: _onHintChanged,
+            decoration: InputDecoration(
+              hintText: '输入密码提示',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              contentPadding: const EdgeInsets.all(16.0),
+            ),
+            maxLength: 50,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 20.0),
+            onSubmitted: (value) {
+              _savePasswordHint();
+            },
+          ),
+        ),
+        const SizedBox(height: 64.0),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _savePasswordHint,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 64.0,
+              vertical: 16.0,
+            ),
+            textStyle: const TextStyle(fontSize: 18.0),
+          ),
+          child: const Text('完成'),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isFirstTime ? '设置解锁密码' : '修改解锁密码'),
-        leading: _isSecondStep
+        title: Text(
+          _isSettingHint
+              ? '设置密码提示'
+              : widget.isFirstTime
+              ? '设置解锁密码'
+              : '修改解锁密码',
+        ),
+        leading: _isSettingHint
+            ? null // 密码提示设置步骤不允许返回
+            : _isSecondStep
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () {
@@ -211,23 +305,26 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
       ),
       body: Stack(
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  _isSecondStep ? '请再次输入密码确认' : '请设置4位纯数字解锁密码，保护你的账号安全',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 18.0),
+          if (_isSettingHint)
+            _buildPasswordHintSetup() // 显示密码提示设置界面
+          else
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    _isSecondStep ? '请再次输入密码确认' : '请设置4位纯数字解锁密码，保护你的账号安全',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18.0),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32.0),
-              _buildPasswordDisplay(),
-              const SizedBox(height: 64.0),
-              _buildNumberPad(),
-            ],
-          ),
+                const SizedBox(height: 32.0),
+                _buildPasswordDisplay(),
+                const SizedBox(height: 64.0),
+                _buildNumberPad(),
+              ],
+            ),
           if (_isLoading)
             Container(
               color: Colors.black.withValues(alpha: 0.5),

@@ -171,4 +171,26 @@ class AuthService {
     await _storage.delete(key: 'failed_attempts');
     await _storage.delete(key: 'lock_until');
   }
+
+  // 保存密码提示
+  Future<void> savePasswordHint(String hint) async {
+    // 密码提示不需要加密，直接保存
+    await _storage.write(key: 'password_hint', value: hint);
+  }
+
+  // 获取密码提示
+  Future<String?> getPasswordHint() async {
+    return await _storage.read(key: 'password_hint');
+  }
+
+  // 检查是否已设置密码提示
+  Future<bool> isPasswordHintSet() async {
+    final hint = await _storage.read(key: 'password_hint');
+    return hint != null && hint.isNotEmpty;
+  }
+
+  // 删除密码提示
+  Future<void> deletePasswordHint() async {
+    await _storage.delete(key: 'password_hint');
+  }
 }
