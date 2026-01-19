@@ -136,4 +136,39 @@ class AuthService {
       ),
     );
   }
+
+  // 保存失败尝试次数
+  Future<void> saveFailedAttempts(int attempts) async {
+    await _storage.write(key: 'failed_attempts', value: attempts.toString());
+  }
+
+  // 获取失败尝试次数
+  Future<int> getFailedAttempts() async {
+    final attempts = await _storage.read(key: 'failed_attempts');
+    return attempts != null ? int.parse(attempts) : 0;
+  }
+
+  // 保存锁定截止时间
+  Future<void> saveLockUntil(DateTime? lockUntil) async {
+    if (lockUntil != null) {
+      await _storage.write(
+        key: 'lock_until',
+        value: lockUntil.toIso8601String(),
+      );
+    } else {
+      await _storage.delete(key: 'lock_until');
+    }
+  }
+
+  // 获取锁定截止时间
+  Future<DateTime?> getLockUntil() async {
+    final lockUntil = await _storage.read(key: 'lock_until');
+    return lockUntil != null ? DateTime.parse(lockUntil) : null;
+  }
+
+  // 重置锁定状态
+  Future<void> resetLockState() async {
+    await _storage.delete(key: 'failed_attempts');
+    await _storage.delete(key: 'lock_until');
+  }
 }

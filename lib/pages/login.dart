@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
 import 'package:pass_clip/pages/password_setup.dart';
+import 'dart:async';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,12 +17,13 @@ class _LoginPageState extends State<LoginPage> {
   bool _isBiometricAvailable = false;
   int _failedAttempts = 0;
   DateTime? _lockUntil;
+  Timer? _lockTimer;
 
   @override
   void initState() {
     super.initState();
     _checkBiometricAvailability();
-    _checkLoginStatus();
+    _loadLockState();
   }
 
   // 检查生物识别是否可用
@@ -32,13 +34,51 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  // 检查是否已登录
-  Future<void> _checkLoginStatus() async {
-    final isLoggedIn = await _authService.getLoginStatus();
-    if (isLoggedIn) {
-      // 如果已登录，直接跳转到主界面
-      Navigator.pushReplacementNamed(context, '/');
+  // 加载锁定状态
+  Future<void> _loadLockState() async {
+    final attempts = await _authService.getFailedAttempts();
+    final lockUntil = await _authService.getLockUntil();
+    setState(() {
+      _failedAttempts = attempts;
+      _lockUntil = lockUntil;
+    });
+    // 启动定时器
+    _startLockTimer();
+  }
+
+  // 启动定时器
+  void _startLockTimer() {
+    // 先停止已有的定时器
+    _stopLockTimer();
+
+    // 如果当前处于锁定状态，启动定时器
+    if (_isAccountLocked()) {
+      _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          // 检查锁定时间是否已过
+          if (!_isAccountLocked()) {
+            // 锁定时间已过，停止定时器并重置锁定状态
+            timer.cancel();
+            _resetLockState();
+          }
+        });
+      });
     }
+  }
+
+  // 停止定时器
+  void _stopLockTimer() {
+    _lockTimer?.cancel();
+    _lockTimer = null;
+  }
+
+  // 重置锁定状态
+  Future<void> _resetLockState() async {
+    setState(() {
+      _failedAttempts = 0;
+      _lockUntil = null;
+    });
+    await _authService.resetLockState();
   }
 
   // 检查是否处于锁定状态
@@ -52,6 +92,13 @@ class _LoginPageState extends State<LoginPage> {
     if (_lockUntil == null) return '';
     final remaining = _lockUntil!.difference(DateTime.now());
     return '${remaining.inMinutes}:${remaining.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void dispose() {
+    // 组件卸载时停止定时器
+    _stopLockTimer();
+    super.dispose();
   }
 
   // 处理数字输入
@@ -81,6 +128,9 @@ class _LoginPageState extends State<LoginPage> {
 
   // 验证密码
   Future<void> _verifyPassword() async {
+    // 提前缓存“主页的ScaffoldMessenger”（避免用弹窗的context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     setState(() {
       _isLoading = true;
     });
@@ -89,9 +139,12 @@ class _LoginPageState extends State<LoginPage> {
       final isPasswordCorrect = await _authService.verifyPassword(_password);
 
       if (isPasswordCorrect) {
-        // 密码正确，重置失败次数
+        // 密码正确，重置失败次数和锁定状态
         _failedAttempts = 0;
         _lockUntil = null;
+
+        // 保存重置后的状态到持久化存储
+        await _authService.resetLockState();
 
         // 保存登录状态
         await _authService.saveLoginStatus(true);
@@ -105,21 +158,30 @@ class _LoginPageState extends State<LoginPage> {
           _password = '';
         });
 
+        // 保存失败尝试次数到持久化存储
+        await _authService.saveFailedAttempts(_failedAttempts);
+
         // 如果失败次数达到5次，锁定账号5分钟
         if (_failedAttempts >= 5) {
+          final newLockUntil = DateTime.now().add(const Duration(minutes: 5));
           setState(() {
-            _lockUntil = DateTime.now().add(const Duration(minutes: 5));
+            _lockUntil = newLockUntil;
           });
+          // 保存锁定时间到持久化存储
+          await _authService.saveLockUntil(newLockUntil);
+          // 启动定时器
+          _startLockTimer();
+        } else {
+          // 未达到锁定条件，清除锁定时间
+          await _authService.saveLockUntil(null);
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('密码错误，剩余尝试次数：${5 - _failedAttempts}')),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('验证失败，请重试')));
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('验证失败，请重试')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -129,6 +191,9 @@ class _LoginPageState extends State<LoginPage> {
 
   // 使用生物识别登录
   Future<void> _loginWithBiometrics() async {
+    // 提前缓存“主页的ScaffoldMessenger”（避免用弹窗的context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     if (!_isBiometricAvailable) return;
 
     setState(() {
@@ -138,18 +203,21 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final isAuthenticated = await _authService.authenticateWithBiometrics();
       if (isAuthenticated) {
-        // 生物识别成功
+        // 生物识别成功，重置锁定状态
+        await _authService.resetLockState();
+
+        // 保存登录状态
         await _authService.saveLoginStatus(true);
         Navigator.pushReplacementNamed(context, '/');
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('生物识别失败，请重试或使用密码登录')));
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('生物识别失败，请重试或使用密码登录')),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('生物识别失败，请重试')));
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('生物识别失败，请重试')),
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -159,6 +227,9 @@ class _LoginPageState extends State<LoginPage> {
 
   // 忘记密码
   void _onForgotPassword() {
+    // 提前缓存“主页的ScaffoldMessenger”（避免用弹窗的context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -193,9 +264,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 );
               } catch (e) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('重置失败，请重试')));
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(content: Text('重置失败，请重试')),
+                );
               } finally {
                 setState(() {
                   _isLoading = false;
