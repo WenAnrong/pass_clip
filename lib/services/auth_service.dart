@@ -1,5 +1,4 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:encrypt/encrypt.dart';
 import 'dart:math';
 
@@ -12,7 +11,6 @@ class AuthService {
   AuthService._internal();
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  final LocalAuthentication _auth = LocalAuthentication();
 
   // 加密密钥和初始化向量
   late Key _key;
@@ -79,33 +77,6 @@ class AuthService {
   Future<bool> isPasswordSet() async {
     final encryptedPassword = await _storage.read(key: 'encrypted_password');
     return encryptedPassword != null;
-  }
-
-  // 检查设备是否支持生物识别（比如有没有指纹/面容）
-  Future<bool> isBiometricAvailable() async {
-    try {
-      return await _auth.canCheckBiometrics && await _auth.isDeviceSupported();
-    } catch (e) {
-      return false; // 设备不支持/权限不足，返回false
-    }
-  }
-
-  // 获取可用的生物识别类型
-  Future<List<BiometricType>> getAvailableBiometrics() async {
-    try {
-      return await _auth.getAvailableBiometrics();
-    } catch (e) {
-      return [];
-    }
-  }
-
-  // 进行生物识别验证
-  Future<bool> authenticateWithBiometrics() async {
-    try {
-      return await _auth.authenticate(localizedReason: '使用生物识别登录');
-    } catch (e) {
-      return false;
-    }
   }
 
   // 保存登录状态

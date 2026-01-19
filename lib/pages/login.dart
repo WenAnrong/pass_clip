@@ -13,7 +13,6 @@ class _LoginPageState extends State<LoginPage> {
   final AuthService _authService = AuthService();
   String _password = '';
   bool _isLoading = false;
-  bool _isBiometricAvailable = false;
   int _failedAttempts = 0;
   DateTime? _lockUntil;
   Timer? _lockTimer;
@@ -21,19 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _checkBiometricAvailability();
     _loadLockState();
-  }
-
-  // 检查生物识别是否可用
-  Future<void> _checkBiometricAvailability() async {
-    final isAvailable = await _authService.isBiometricAvailable();
-    // 加mounted检查，避免更新已销毁的State
-    if (mounted) {
-      setState(() {
-        _isBiometricAvailable = isAvailable;
-      });
-    }
   }
 
   // 加载锁定状态
@@ -214,48 +201,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // 使用生物识别登录（核心修复：跳转前加mounted检查）
-  Future<void> _loginWithBiometrics() async {
-    // 提前缓存需要的对象
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-
-    if (!_isBiometricAvailable) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final isAuthenticated = await _authService.authenticateWithBiometrics();
-      if (isAuthenticated) {
-        // 生物识别成功，重置锁定状态
-        await _authService.resetLockState();
-
-        // 保存登录状态
-        await _authService.saveLoginStatus(true);
-        // 修复关键：跳转前检查mounted
-        if (mounted) {
-          navigator.pushReplacementNamed('/');
-        }
-      } else {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('生物识别失败，请重试或使用密码登录')),
-        );
-      }
-    } catch (e) {
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('生物识别失败，请重试')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   // 显示密码提示
   void _onPasswordHint() {
     // 提前缓存需要的对象
@@ -416,19 +361,6 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       _buildPasswordDisplay(),
                       const SizedBox(height: 24.0),
-                      if (_isBiometricAvailable)
-                        ElevatedButton.icon(
-                          onPressed: _isLoading ? null : _loginWithBiometrics,
-                          icon: const Icon(Icons.fingerprint),
-                          label: const Text('使用生物识别登录'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24.0,
-                              vertical: 10.0,
-                            ),
-                            textStyle: const TextStyle(fontSize: 16.0),
-                          ),
-                        ),
                     ],
                   ),
                 const SizedBox(height: 16.0),

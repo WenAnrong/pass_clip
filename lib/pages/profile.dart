@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/import_export_service.dart';
-import 'package:pass_clip/services/auth_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
@@ -71,43 +70,7 @@ class ProfilePage extends StatelessWidget {
               },
             ),
           ),
-          // 生物识别设置
-          FutureBuilder<bool>(
-            future: AuthService().isBiometricAvailable(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData && snapshot.data == true) {
-                return Card(
-                  margin: const EdgeInsets.all(16.0),
-                  child: ListTile(
-                    title: const Text('生物识别设置'),
-                    trailing: const Switch(value: true, onChanged: null),
-                    onTap: () {
-                      // 生物识别设置
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('生物识别设置'),
-                            content: const Text('生物识别功能已启用'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('确定'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                );
-              } else {
-                return const SizedBox();
-              }
-            },
-          ),
+
           // 关于我们
           Card(
             margin: const EdgeInsets.all(16.0),
