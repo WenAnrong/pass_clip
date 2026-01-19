@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
+import 'package:pass_clip/utils/refresh_notifier.dart';
 
 class CategoryManagementPage extends StatefulWidget {
   const CategoryManagementPage({super.key});
@@ -54,6 +55,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
 
       final newCategory = Category(name: categoryName);
       await _storageService.saveCategory(newCategory);
+      RefreshNotifier.instance.notifyRefresh(); // 发送刷新通知
 
       _categoryController.clear();
       await _loadCategories();

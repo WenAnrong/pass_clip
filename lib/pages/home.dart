@@ -12,15 +12,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final StorageService _storageService = StorageService();
-  // 刷新通知回调函数
-  late final VoidCallback _refreshCallback;
+  final StorageService _storageService = StorageService(); // 本地存储服务（读写账号/分类）
+  late final VoidCallback _refreshCallback; // 刷新通知回调函数
   List<Account> _accounts = [];
   List<Category> _categories = [];
   String _selectedCategory = '全部分类';
   String _searchText = '';
-  String _sortOption = '按名称升序';
-  bool _isLoading = true;
+  String _sortOption = '按时间最新';
+  bool _isLoading = true; // 数据加载状态（控制加载动画）
 
   @override
   void initState() {
@@ -89,14 +88,14 @@ class _HomePageState extends State<HomePage> {
 
     // 排序
     switch (_sortOption) {
+      case '按时间最新':
+        filtered.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        break;
       case '按名称升序':
         filtered.sort((a, b) => a.platform.compareTo(b.platform));
         break;
       case '按名称降序':
         filtered.sort((a, b) => b.platform.compareTo(a.platform));
-        break;
-      case '按时间最新':
-        filtered.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
         break;
       case '按时间最早':
         filtered.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));

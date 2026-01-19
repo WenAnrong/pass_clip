@@ -11,7 +11,6 @@ class AppNavigatorUtils {
     required AuthService authService,
   }) async {
     if (navigatorKey.currentState == null) {
-      print('导航Key未绑定，无法跳转');
       return;
     }
     await _checkStateAndDoNavigate(navigatorKey.currentState!, authService);
@@ -53,7 +52,6 @@ class AppNavigatorUtils {
         }
       }
     } catch (e) {
-      print('状态校验失败：$e');
       await _pushNamedAndRemoveAll(
         navigatorState: navigatorState,
         routeName: '/passwordSetup',
@@ -75,7 +73,6 @@ class AppNavigatorUtils {
         arguments: arguments,
       );
     } catch (e) {
-      print('命名路由跳转失败：$routeName，错误：$e');
       Widget targetPage = const Scaffold(body: Center(child: Text('页面不存在')));
       switch (routeName) {
         case '/passwordSetup':

@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
 import 'package:pass_clip/utils/app_navigator_utils.dart';
 
+/*
+ * 初始页面
+ * 负责检查登录状态并导航到对应页面
+ */
+
 class InitialPage extends StatefulWidget {
   const InitialPage({super.key});
 
