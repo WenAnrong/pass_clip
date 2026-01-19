@@ -127,7 +127,7 @@ class ProfilePage extends StatelessWidget {
                         children: [
                           Text('版本号：1.0.0'),
                           SizedBox(height: 8.0),
-                          Text('开发信息：本地账号密码管理工具'),
+                          Text('开发信息：秘荚开发者'),
                           SizedBox(height: 8.0),
                           Text('隐私政策：本APP所有数据仅存储在本地设备，无任何网络传输，保障数据安全。'),
                         ],
@@ -206,55 +206,57 @@ class _ExportPageState extends State<ExportPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '数据导出',
-            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16.0),
-          const Text('选择导出格式：'),
-          const SizedBox(height: 8.0),
-          SegmentedButton<String>(
-            selected: {_exportFormat},
-            onSelectionChanged: (Set<String> newSelection) {
-              setState(() {
-                _exportFormat = newSelection.first;
-              });
-            },
-            segments: const <ButtonSegment<String>>[
-              ButtonSegment<String>(value: 'JSON', label: Text('JSON格式')),
-              ButtonSegment<String>(value: 'CSV', label: Text('CSV格式')),
-            ],
-          ),
-          const SizedBox(height: 24.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('取消'),
-              ),
-              const SizedBox(width: 16.0),
-              ElevatedButton(
-                onPressed: _isExporting ? null : _exportData,
-                child: _isExporting
-                    ? const SizedBox(
-                        width: 20.0,
-                        height: 20.0,
-                        child: CircularProgressIndicator(strokeWidth: 2.0),
-                      )
-                    : const Text('导出'),
-              ),
-            ],
-          ),
-        ],
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '数据导出',
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16.0),
+            const Text('选择导出格式：'),
+            const SizedBox(height: 8.0),
+            SegmentedButton<String>(
+              selected: {_exportFormat},
+              onSelectionChanged: (Set<String> newSelection) {
+                setState(() {
+                  _exportFormat = newSelection.first;
+                });
+              },
+              segments: const <ButtonSegment<String>>[
+                ButtonSegment<String>(value: 'JSON', label: Text('JSON格式')),
+                ButtonSegment<String>(value: 'CSV', label: Text('CSV格式')),
+              ],
+            ),
+            const SizedBox(height: 24.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('取消'),
+                ),
+                const SizedBox(width: 16.0),
+                ElevatedButton(
+                  onPressed: _isExporting ? null : _exportData,
+                  child: _isExporting
+                      ? const SizedBox(
+                          width: 20.0,
+                          height: 20.0,
+                          child: CircularProgressIndicator(strokeWidth: 2.0),
+                        )
+                      : const Text('导出'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -346,73 +348,75 @@ class _ImportPageState extends State<ImportPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '数据导入',
-            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16.0),
-          const Text('选择导入文件（支持JSON和CSV格式）：'),
-          const SizedBox(height: 16.0),
-          InkWell(
-            onTap: _selectFile,
-            child: Container(
-              width: double.infinity,
-              height: 150.0,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Center(
-                child: _fileName != null
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.check_circle, color: Colors.green),
-                          const SizedBox(height: 8.0),
-                          Text('已选择：$_fileName'),
-                        ],
-                      )
-                    : const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.upload_file),
-                          SizedBox(height: 8.0),
-                          Text('点击选择文件'),
-                        ],
-                      ),
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '数据导入',
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16.0),
+            const Text('选择导入文件（支持JSON和CSV格式）：'),
+            const SizedBox(height: 16.0),
+            InkWell(
+              onTap: _selectFile,
+              child: Container(
+                width: double.infinity,
+                height: 150.0,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Center(
+                  child: _fileName != null
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.green),
+                            const SizedBox(height: 8.0),
+                            Text('已选择：$_fileName'),
+                          ],
+                        )
+                      : const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.upload_file),
+                            SizedBox(height: 8.0),
+                            Text('点击选择文件'),
+                          ],
+                        ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 24.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('取消'),
-              ),
-              const SizedBox(width: 16.0),
-              ElevatedButton(
-                onPressed: _isImporting ? null : _importData,
-                child: _isImporting
-                    ? const SizedBox(
-                        width: 20.0,
-                        height: 20.0,
-                        child: CircularProgressIndicator(strokeWidth: 2.0),
-                      )
-                    : const Text('导入'),
-              ),
-            ],
-          ),
-        ],
+            const SizedBox(height: 24.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('取消'),
+                ),
+                const SizedBox(width: 16.0),
+                ElevatedButton(
+                  onPressed: _isImporting ? null : _importData,
+                  child: _isImporting
+                      ? const SizedBox(
+                          width: 20.0,
+                          height: 20.0,
+                          child: CircularProgressIndicator(strokeWidth: 2.0),
+                        )
+                      : const Text('导入'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
