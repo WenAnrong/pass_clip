@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'routers/index.dart';
-import 'services/auth_service.dart';
+import 'package:pass_clip/routers/index.dart';
+import 'package:pass_clip/services/auth_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,6 +30,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  // 注册了 WidgetsBindingObserver 后，会自动调用此方法, 应用状态变化时会调用此方法
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);

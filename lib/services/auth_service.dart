@@ -4,8 +4,11 @@ import 'package:encrypt/encrypt.dart';
 import 'dart:math';
 
 class AuthService {
+  // 静态私有实例（唯一的管家）
   static final AuthService _instance = AuthService._internal();
+  // 工厂构造函数（对外提供唯一实例）
   factory AuthService() => _instance;
+  // 私有构造函数（禁止外部new AuthService()）
   AuthService._internal();
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -19,7 +22,7 @@ class AuthService {
 
   // 初始化加密参数
   Future<void> _initialize() async {
-    if (_isInitialized) return;
+    if (_isInitialized) return; // 避免重复初始化
 
     // 尝试从存储中获取密钥和IV
     final keyString = await _storage.read(key: 'encryption_key');
@@ -43,7 +46,7 @@ class AuthService {
     _isInitialized = true;
   }
 
-  // 保存密码
+  // 保存密码（应用密码，用于登录验证）
   Future<void> savePassword(String password) async {
     await _initialize();
     // 加密密码
@@ -57,7 +60,7 @@ class AuthService {
   // 验证密码
   Future<bool> verifyPassword(String password) async {
     final encryptedPassword = await _storage.read(key: 'encrypted_password');
-    if (encryptedPassword == null) return false;
+    if (encryptedPassword == null) return false; // 没设置过密码
 
     await _initialize();
 
@@ -78,12 +81,12 @@ class AuthService {
     return encryptedPassword != null;
   }
 
-  // 检查生物识别是否可用
+  // 检查设备是否支持生物识别（比如有没有指纹/面容）
   Future<bool> isBiometricAvailable() async {
     try {
       return await _auth.canCheckBiometrics && await _auth.isDeviceSupported();
     } catch (e) {
-      return false;
+      return false; // 设备不支持/权限不足，返回false
     }
   }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
-import 'login.dart';
-import 'password_setup.dart';
+import 'package:pass_clip/components/bottom_navigation.dart';
+import 'package:pass_clip/pages/login.dart';
+import 'package:pass_clip/pages/password_setup.dart';
 
-// 应用初始化页面，用于检查登录状态和密码设置
 class InitialPage extends StatefulWidget {
   const InitialPage({super.key});
 
@@ -21,45 +21,73 @@ class _InitialPageState extends State<InitialPage> {
     _checkInitialState();
   }
 
-  // 检查应用的初始状态
+  // 核心：检查状态并跳转（全部清空旧页面）
   Future<void> _checkInitialState() async {
     try {
-      // 检查是否已设置密码
       final isPasswordSet = await _authService.isPasswordSet();
       if (!isPasswordSet) {
-        // 未设置密码，跳转到密码设置页面
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PasswordSetupPage(isFirstTime: true),
-          ),
+        // 跳密码设置页 → 清空所有旧页面
+        await _pushNamedAndRemoveAll(
+          '/passwordSetup',
+          arguments: {'isFirstTime': true},
         );
       } else {
-        // 已设置密码，检查登录状态
         final isLoggedIn = await _authService.getLoginStatus();
         if (isLoggedIn) {
-          // 已登录，跳转到主界面
-          Navigator.pushReplacementNamed(context, '/');
+          // 跳主界面 → 清空所有旧页面
+          await _pushNamedAndRemoveAll('/');
         } else {
-          // 未登录，跳转到登录页面
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginPage()),
-          );
+          // 跳登录页 → 清空所有旧页面
+          await _pushNamedAndRemoveAll('/login');
         }
       }
     } catch (e) {
-      // 发生错误，默认跳转到密码设置页面
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const PasswordSetupPage(isFirstTime: true),
-        ),
+      // 异常兜底 → 跳密码设置页并清空所有
+      await _pushNamedAndRemoveAll(
+        '/passwordSetup',
+        arguments: {'isFirstTime': true},
       );
     } finally {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  /// 封装：清空所有旧页面，跳转到指定命名路由（核心方法）
+  /// [routeName]：目标路由名（比如'/login'）
+  /// [arguments]：传递给目标页面的参数
+  Future<void> _pushNamedAndRemoveAll(
+    String routeName, {
+    dynamic arguments,
+  }) async {
+    try {
+      // 关键：pushNamedAndRemoveUntil + predicate返回false → 清空所有旧路由
+      await Navigator.pushNamedAndRemoveUntil(
+        context,
+        routeName,
+        (Route<dynamic> route) => false, // 核心参数：false=移除所有之前的路由
+        arguments: arguments, // 传递参数
+      );
+    } catch (e) {
+      // 路由跳转失败（比如拼错名）→ 兜底跳转（仍清空所有）
+      print('路由跳转失败：$routeName，错误：$e');
+      Widget page = const Scaffold(body: Center(child: Text('页面不存在')));
+      if (routeName == '/passwordSetup') {
+        page = PasswordSetupPage(
+          isFirstTime: arguments?['isFirstTime'] ?? true,
+        );
+      } else if (routeName == '/login') {
+        page = const LoginPage();
+      } else if (routeName == '/') {
+        page = const BottomNavigation();
+      }
+      // 非命名路由版：清空所有并跳转
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => page),
+        (route) => false,
+      );
     }
   }
 
