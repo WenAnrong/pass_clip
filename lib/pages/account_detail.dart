@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/services/storage_service.dart';
+import 'package:pass_clip/pages/add_account.dart';
+import 'package:pass_clip/utils/refresh_notifier.dart';
 
 class AccountDetailPage extends StatefulWidget {
   final String? accountId;
@@ -20,50 +22,76 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
   @override
   void initState() {
     super.initState();
-    _loadAccount();
+    // 监听刷新通知
+    RefreshNotifier.instance.addListener(_onRefresh);
+    // 关键修复1：延迟获取路由参数（等Widget挂载完成）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAccount();
+    });
+  }
+
+  @override
+  void dispose() {
+    // 移除刷新通知监听
+    RefreshNotifier.instance.removeListener(_onRefresh);
+    super.dispose();
+  }
+
+  // 处理刷新通知
+  void _onRefresh() {
+    if (mounted) {
+      _loadAccount();
+    }
   }
 
   // 加载账号数据
   Future<void> _loadAccount() async {
+    // 初始化加载状态（此时Widget已挂载，mounted=true）
     setState(() {
       _isLoading = true;
+      _account = null;
     });
 
-    if (widget.accountId != null) {
+    try {
+      // 步骤1：优先取构造函数传参，再取路由参数（修复参数获取逻辑）
+      String? accountId = widget.accountId;
+      // 此时ModalRoute.of(context)已能正常获取路由参数
+      if (accountId == null) {
+        final routeArgs = ModalRoute.of(context)?.settings.arguments;
+        accountId = routeArgs is String ? routeArgs : routeArgs?.toString();
+      }
+
+      // 步骤2：校验账号ID是否为空
+      if (accountId == null || accountId.isEmpty) {
+        throw Exception('未提供账号ID'); // 主动抛异常，统一处理
+      }
+
+      // 步骤3：加载账号并查找匹配项（添加orElse避免StateError）
       final accounts = await _storageService.getAccounts();
       _account = accounts.firstWhere(
-        (account) => account.id == widget.accountId,
-        orElse: () => Account(
-          id: '1',
-          platform: '微信',
-          username: '138****1234',
-          password: '12345678',
-          category: '社交',
-          remark: '工作账号',
-          url: 'https://weixin.qq.com',
-        ),
+        (account) => account.id == accountId,
+        orElse: () => throw Exception('未找到该账号信息'), // 无匹配项时主动抛异常
       );
-    } else {
-      // 模拟数据
-      _account = Account(
-        id: '1',
-        platform: '微信',
-        username: '138****1234',
-        password: '12345678',
-        category: '社交',
-        remark: '工作账号',
-        url: 'https://weixin.qq.com',
-      );
+    } catch (e) {
+      // 统一处理所有异常（无需判断mounted，此时Widget已挂载）
+      final errorMsg = e.toString().contains('未找到') ? '未找到该账号信息' : '未提供账号ID';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMsg)));
+      // 延迟退出，确保提示能显示（可选）
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) Navigator.pop(context);
+      });
+    } finally {
+      // 无论成功/失败，都更新加载状态（此时mounted=true）
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
-  // 复制文本到剪贴板
+  // 复制文本到剪贴板（简化版）
   void _copyToClipboard(String text, String message) {
-    // 这里简化处理，实际应用中需要使用clipboard库
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
@@ -81,7 +109,13 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/addAccount');
+              // 跳转到编辑页，传递完整的账号对象
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddAccountPage(account: _account!),
+                ),
+              );
             },
             icon: const Icon(Icons.edit),
           ),
@@ -152,14 +186,16 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                       ],
                     ),
                   ),
-                  if (_account!.url != null) const Divider(),
-                  if (_account!.url != null)
+                  if (_account!.url != null && _account!.url!.isNotEmpty)
+                    const Divider(),
+                  if (_account!.url != null && _account!.url!.isNotEmpty)
                     ListTile(
                       title: const Text('网址'),
                       subtitle: Text(_account!.url!),
                     ),
-                  if (_account!.remark != null) const Divider(),
-                  if (_account!.remark != null)
+                  if (_account!.remark != null && _account!.remark!.isNotEmpty)
+                    const Divider(),
+                  if (_account!.remark != null && _account!.remark!.isNotEmpty)
                     ListTile(
                       title: const Text('备注'),
                       subtitle: Text(_account!.remark!),

@@ -110,10 +110,23 @@ class _HomePageState extends State<HomePage> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
+        // 适配刘海屏/底部导航栏，避免内容被遮挡
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ListTile(
+                title: const Text('按时间最新'),
+                trailing: _sortOption == '按时间最新'
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () {
+                  setState(() {
+                    _sortOption = '按时间最新';
+                  });
+                  Navigator.pop(context);
+                },
+              ),
               ListTile(
                 title: const Text('按名称升序'),
                 trailing: _sortOption == '按名称升序'
@@ -134,18 +147,6 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   setState(() {
                     _sortOption = '按名称降序';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const Text('按时间最新'),
-                trailing: _sortOption == '按时间最新'
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () {
-                  setState(() {
-                    _sortOption = '按时间最新';
                   });
                   Navigator.pop(context);
                 },
@@ -209,12 +210,22 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               onPressed: () async {
+                // 异步操作前，提前缓存需要的对象（避免跨异步用context）
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
+
+                // 执行异步操作
                 await _storageService.deleteAccount(account.id);
                 await _loadData();
-                Navigator.pop(context);
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('删除成功')));
+
+                // 检查主页是否存活
+                if (!mounted) return;
+
+                // 用缓存的对象执行操作
+                navigator.pop();
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(content: Text('删除成功')),
+                );
               },
               child: const Text('删除'),
             ),
@@ -222,28 +233,6 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
-  }
-
-  // 格式化账号（隐藏中间字符）
-  String _formatUsername(String username) {
-    if (username.isEmpty) return '';
-    if (username.length <= 4) return username;
-    if (username.contains('@')) {
-      // 邮箱格式
-      final parts = username.split('@');
-      if (parts[0].length > 3) {
-        final hidden = '*' * (parts[0].length - 3);
-        return '${parts[0].substring(0, 3)}$hidden@${parts[1]}';
-      }
-      return username;
-    } else if (username.length >= 11) {
-      // 手机号格式
-      return '${username.substring(0, 3)}****${username.substring(7)}';
-    } else {
-      // 其他格式
-      final hidden = '*' * (username.length - 4);
-      return '${username.substring(0, 2)}$hidden${username.substring(username.length - 2)}';
-    }
   }
 
   @override
@@ -330,7 +319,7 @@ class _HomePageState extends State<HomePage> {
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(_formatUsername(account.username)),
+                                  Text(account.username),
                                   Text(
                                     account.updatedAt.toString().substring(
                                       0,
@@ -348,7 +337,11 @@ class _HomePageState extends State<HomePage> {
                                 labelStyle: const TextStyle(fontSize: 10),
                               ),
                               onTap: () {
-                                Navigator.pushNamed(context, '/accountDetail');
+                                Navigator.pushNamed(
+                                  context,
+                                  '/accountDetail',
+                                  arguments: account.id,
+                                );
                               },
                               onLongPress: () {
                                 _showDeleteConfirm(account);
