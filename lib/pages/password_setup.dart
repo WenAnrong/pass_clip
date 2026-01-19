@@ -4,18 +4,18 @@ import 'package:pass_clip/services/auth_service.dart';
 class PasswordSetupPage extends StatefulWidget {
   const PasswordSetupPage({super.key, this.isFirstTime = true});
 
-  final bool isFirstTime;
+  final bool isFirstTime; // 是否是首次登录
 
   @override
   State<PasswordSetupPage> createState() => _PasswordSetupPageState();
 }
 
 class _PasswordSetupPageState extends State<PasswordSetupPage> {
-  final AuthService _authService = AuthService();
-  String _password = '';
-  String _confirmPassword = '';
-  bool _isSecondStep = false;
-  bool _isLoading = false;
+  final AuthService _authService = AuthService(); // 认证服务
+  String _password = ''; // 密码
+  String _confirmPassword = ''; // 确认密码
+  bool _isSecondStep = false; // 是否是确认密码步骤
+  bool _isLoading = false; // 是否正在加载
 
   // 检查密码长度是否为4位
   bool _isPasswordValid(String password) {
@@ -92,27 +92,28 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
 
   // 保存密码
   Future<void> _savePassword() async {
+    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await _authService.savePassword(_password);
-      await _authService.saveLoginStatus(true);
+      await _authService.savePassword(_password); // 保存密码到本地存储
+      await _authService.saveLoginStatus(true); // 标记“已设置密码”，跳过后续首次启动流程
 
       // 显示成功提示
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('密码设置成功')));
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('密码设置成功')));
 
       // 延迟导航到主界面
       Future.delayed(const Duration(seconds: 1), () {
-        Navigator.pushReplacementNamed(context, '/');
+        navigator.pushReplacementNamed('/');
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('密码设置失败：$e')));
+      // 显示失败提示
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('密码设置失败：$e')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -229,7 +230,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: const Center(child: CircularProgressIndicator()),
             ),
         ],

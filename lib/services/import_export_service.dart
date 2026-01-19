@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:csv/csv.dart';
-import '../models/account.dart';
-import '../models/category.dart';
-import '../services/storage_service.dart';
+import 'package:pass_clip/models/account.dart';
+import 'package:pass_clip/models/category.dart';
+import 'package:pass_clip/services/storage_service.dart';
 
 class ImportExportService {
   final StorageService _storageService = StorageService();

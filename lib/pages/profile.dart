@@ -167,6 +167,9 @@ class _ExportPageState extends State<ExportPage> {
 
   // 导出数据
   Future<void> _exportData() async {
+    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     setState(() {
       _isExporting = true;
     });
@@ -189,17 +192,15 @@ class _ExportPageState extends State<ExportPage> {
       final file = File(path);
       await file.writeAsString(exportData);
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('导出成功：$path')));
+      navigator.pop();
+      // 显示成功提示
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('导出成功：$path')));
     } catch (e) {
       setState(() {
         _isExporting = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('导出失败：$e')));
+      // 显示失败提示
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('导出失败：$e')));
     }
   }
 
@@ -218,29 +219,16 @@ class _ExportPageState extends State<ExportPage> {
           const SizedBox(height: 16.0),
           const Text('选择导出格式：'),
           const SizedBox(height: 8.0),
-          Row(
-            children: [
-              Radio(
-                value: 'JSON',
-                groupValue: _exportFormat,
-                onChanged: (value) {
-                  setState(() {
-                    _exportFormat = value!;
-                  });
-                },
-              ),
-              const Text('JSON格式'),
-              const SizedBox(width: 16.0),
-              Radio(
-                value: 'CSV',
-                groupValue: _exportFormat,
-                onChanged: (value) {
-                  setState(() {
-                    _exportFormat = value!;
-                  });
-                },
-              ),
-              const Text('CSV格式'),
+          SegmentedButton<String>(
+            selected: {_exportFormat},
+            onSelectionChanged: (Set<String> newSelection) {
+              setState(() {
+                _exportFormat = newSelection.first;
+              });
+            },
+            segments: const <ButtonSegment<String>>[
+              ButtonSegment<String>(value: 'JSON', label: Text('JSON格式')),
+              ButtonSegment<String>(value: 'CSV', label: Text('CSV格式')),
             ],
           ),
           const SizedBox(height: 24.0),
@@ -288,6 +276,9 @@ class _ImportPageState extends State<ImportPage> {
 
   // 选择文件
   Future<void> _selectFile() async {
+    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -304,18 +295,20 @@ class _ImportPageState extends State<ImportPage> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('选择文件失败：$e')));
+      // 显示失败提示
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('选择文件失败：$e')));
     }
   }
 
   // 导入数据
   Future<void> _importData() async {
+    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     if (_fileContent == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('请先选择文件')));
+      // 显示提示
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('请先选择文件')));
       return;
     }
 
@@ -336,17 +329,18 @@ class _ImportPageState extends State<ImportPage> {
         throw Exception('不支持的文件格式');
       }
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('导入成功，共导入$importedCount条账号信息')));
+      // 导入成功，返回上一页
+      navigator.pop();
+      // 显示成功提示
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('导入成功，共导入$importedCount条账号信息')),
+      );
     } catch (e) {
       setState(() {
         _isImporting = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('导入失败：$e')));
+      // 显示失败提示
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('导入失败：$e')));
     }
   }
 
