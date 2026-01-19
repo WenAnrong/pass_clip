@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'package:pass_clip/pages/add_account.dart';
@@ -24,7 +25,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
     super.initState();
     // 监听刷新通知
     RefreshNotifier.instance.addListener(_onRefresh);
-    // 关键修复1：延迟获取路由参数（等Widget挂载完成）
+    // 延迟获取路由参数（等Widget挂载完成）
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadAccount();
     });
@@ -46,14 +47,14 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
 
   // 加载账号数据
   Future<void> _loadAccount() async {
-    // 初始化加载状态（此时Widget已挂载，mounted=true）
+    // 初始化加载状态
     setState(() {
       _isLoading = true;
       _account = null;
     });
 
     try {
-      // 步骤1：优先取构造函数传参，再取路由参数（修复参数获取逻辑）
+      // 优先取构造函数传参，再取路由参数（修复参数获取逻辑）
       String? accountId = widget.accountId;
       // 此时ModalRoute.of(context)已能正常获取路由参数
       if (accountId == null) {
@@ -61,26 +62,34 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
         accountId = routeArgs is String ? routeArgs : routeArgs?.toString();
       }
 
-      // 步骤2：校验账号ID是否为空
+      // 校验账号ID是否为空
       if (accountId == null || accountId.isEmpty) {
         throw Exception('未提供账号ID'); // 主动抛异常，统一处理
       }
 
-      // 步骤3：加载账号并查找匹配项（添加orElse避免StateError）
+      // 加载账号并查找匹配项（添加orElse避免StateError）
       final accounts = await _storageService.getAccounts();
       _account = accounts.firstWhere(
         (account) => account.id == accountId,
         orElse: () => throw Exception('未找到该账号信息'), // 无匹配项时主动抛异常
       );
     } catch (e) {
-      // 统一处理所有异常（无需判断mounted，此时Widget已挂载）
+      // 先检查页面是否存活，避免无效操作
+      if (!mounted) return;
+
+      // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
+
+      // 统一处理错误信息，显示提示（此时mounted=true，安全）
       final errorMsg = e.toString().contains('未找到') ? '未找到该账号信息' : '未提供账号ID';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMsg)));
-      // 延迟退出，确保提示能显示（可选）
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text(errorMsg)));
+
+      // 延迟退出，使用缓存的navigator + mounted检查（消除跨异步警告）
       Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          navigator.pop();
+        }
       });
     } finally {
       // 无论成功/失败，都更新加载状态（此时mounted=true）
@@ -90,11 +99,18 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
     }
   }
 
-  // 复制文本到剪贴板（简化版）
-  void _copyToClipboard(String text, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+  // 复制文本到剪贴板
+  Future<void> _copyToClipboard(String text, String successMessage) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: text));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('复制失败，请重试')));
+    }
   }
 
   @override
@@ -150,8 +166,8 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                     title: const Text('账号'),
                     subtitle: Text(_account!.username),
                     trailing: IconButton(
-                      onPressed: () {
-                        _copyToClipboard(_account!.username, '账号已复制');
+                      onPressed: () async {
+                        await _copyToClipboard(_account!.username, '账号已复制');
                       },
                       icon: const Icon(Icons.copy),
                     ),
@@ -178,8 +194,8 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                           ),
                         ),
                         IconButton(
-                          onPressed: () {
-                            _copyToClipboard(_account!.password, '密码已复制');
+                          onPressed: () async {
+                            await _copyToClipboard(_account!.password, '密码已复制');
                           },
                           icon: const Icon(Icons.copy),
                         ),
