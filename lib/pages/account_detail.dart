@@ -113,6 +113,36 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
     }
   }
 
+  // 构建自定义字段列表，为每个字段添加分隔线
+  List<Widget> _buildCustomFieldsList() {
+    final List<Widget> fieldsList = [];
+    final entries = _account!.customFields.entries.toList();
+
+    for (int i = 0; i < entries.length; i++) {
+      final entry = entries[i];
+
+      // 除了第一个字段，其他字段前都添加分隔线
+      if (i > 0) {
+        fieldsList.add(const Divider());
+      }
+
+      fieldsList.add(
+        ListTile(
+          title: Text(entry.key),
+          subtitle: Text(entry.value),
+          trailing: IconButton(
+            onPressed: () async {
+              await _copyToClipboard(entry.value, '${entry.key}已复制');
+            },
+            icon: const Icon(Icons.copy),
+          ),
+        ),
+      );
+    }
+
+    return fieldsList;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _account == null) {
@@ -208,6 +238,12 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                     ListTile(
                       title: const Text('网址'),
                       subtitle: Text(_account!.url!),
+                      trailing: IconButton(
+                        onPressed: () async {
+                          await _copyToClipboard(_account!.url!, '网址已复制');
+                        },
+                        icon: const Icon(Icons.copy),
+                      ),
                     ),
                   if (_account!.remark != null && _account!.remark!.isNotEmpty)
                     const Divider(),
@@ -215,7 +251,16 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                     ListTile(
                       title: const Text('备注'),
                       subtitle: Text(_account!.remark!),
+                      trailing: IconButton(
+                        onPressed: () async {
+                          await _copyToClipboard(_account!.remark!, '备注已复制');
+                        },
+                        icon: const Icon(Icons.copy),
+                      ),
                     ),
+                  // 自定义字段
+                  if (_account!.customFields.isNotEmpty) const Divider(),
+                  ..._buildCustomFieldsList(),
                 ],
               ),
             ),

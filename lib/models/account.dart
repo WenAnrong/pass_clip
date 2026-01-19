@@ -8,6 +8,7 @@ class Account {
   String category;
   String? remark;
   String? url;
+  Map<String, String> customFields;
   DateTime createdAt;
   DateTime updatedAt;
 
@@ -19,9 +20,11 @@ class Account {
     this.category = '未分类',
     this.remark,
     this.url,
+    Map<String, String>? customFields,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : createdAt = createdAt ?? DateTime.now(),
+  }) : customFields = customFields ?? {},
+       createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
   // 将对象转换为Map
@@ -34,6 +37,7 @@ class Account {
       'category': category,
       'remark': remark,
       'url': url,
+      'customFields': customFields,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -41,6 +45,15 @@ class Account {
 
   // 从Map创建对象
   factory Account.fromMap(Map<String, dynamic> map) {
+    // 处理自定义字段
+    Map<String, String> customFields = {};
+    if (map.containsKey('customFields') && map['customFields'] != null) {
+      final fields = map['customFields'] as Map<dynamic, dynamic>;
+      customFields = fields.map(
+        (key, value) => MapEntry(key.toString(), value.toString()),
+      );
+    }
+
     return Account(
       id: map['id'],
       platform: map['platform'],
@@ -49,6 +62,7 @@ class Account {
       category: map['category'],
       remark: map['remark'],
       url: map['url'],
+      customFields: customFields,
       createdAt: DateTime.parse(map['createdAt']),
       updatedAt: DateTime.parse(map['updatedAt']),
     );
