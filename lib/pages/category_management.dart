@@ -42,6 +42,9 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
 
   // 新增分类
   Future<void> _addCategory() async {
+    // 提前缓存ScaffoldMessenger（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     if (_formKey.currentState!.validate()) {
       final categoryName = _categoryController.text.trim();
 
@@ -64,9 +67,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
         _isAdding = false;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('分类创建成功')));
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('分类创建成功')));
     }
   }
 
@@ -82,6 +83,8 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
 
   // 保存编辑
   Future<void> _saveEditCategory() async {
+    // 提前缓存ScaffoldMessenger（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     if (_formKey.currentState!.validate()) {
       final newCategoryName = _categoryController.text.trim();
 
@@ -91,9 +94,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
             category.name == newCategoryName &&
             category.name != _editingCategory,
       )) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('分类已存在')));
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('分类已存在')));
         return;
       }
 
@@ -123,18 +124,18 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
         _isEditing = false;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('分类更新成功')));
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('分类更新成功')));
     }
   }
 
   // 删除分类
   void _showDeleteConfirm(String categoryName) {
+    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     if (categoryName == '未分类') {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('默认分类不可删除')));
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('默认分类不可删除')));
       return;
     }
 
@@ -155,10 +156,10 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
               onPressed: () async {
                 await _storageService.deleteCategory(categoryName);
                 await _loadCategories();
-                Navigator.pop(context);
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('分类删除成功')));
+                navigator.pop();
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(content: Text('分类删除成功')),
+                );
               },
               child: const Text('删除'),
             ),

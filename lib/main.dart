@@ -38,7 +38,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     switch (state) {
-      // 关键：加入 inactive 状态（多任务界面触发）
+      // 加入 inactive 状态（多任务界面触发）
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
         // 异步方法必须加 await，确保状态清除完成
@@ -58,13 +58,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     await _authService.saveLoginStatus(false);
   }
 
-  // 修正 _handleAppResumed，确保标记在 finally 中重置
   Future<void> _handleAppResumed() async {
     if (_isNavigating) return;
     _isNavigating = true;
 
     try {
-      // 可选：延迟 100ms 执行，避免状态同步问题
+      // 延迟 100ms 执行，避免状态同步问题
       await Future.delayed(const Duration(milliseconds: 100));
       await AppNavigatorUtils.checkAppStateAndNavigate(
         navigatorKey: _navigatorKey,
