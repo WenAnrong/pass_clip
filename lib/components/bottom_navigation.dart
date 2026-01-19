@@ -29,15 +29,12 @@ class _BottomNavigationState extends State<BottomNavigation> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
         ],
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/addAccount');
         },
-        backgroundColor: Colors.orange,
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

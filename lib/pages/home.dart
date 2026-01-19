@@ -242,7 +242,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('账号密码管理'),
+        title: const Text('秘荚'),
         actions: [
           IconButton(onPressed: _showSortOptions, icon: const Icon(Icons.sort)),
           IconButton(
