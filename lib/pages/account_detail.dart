@@ -101,15 +101,16 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
 
   // 复制文本到剪贴板
   Future<void> _copyToClipboard(String text, String successMessage) async {
+    // 先检查页面是否存活，避免无效操作
+    if (!mounted) return;
+    // 提前缓存ScaffoldMessenger（避免跨异步用context）
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       await Clipboard.setData(ClipboardData(text: text));
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(successMessage)));
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text(successMessage)));
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('复制失败，请重试')));
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('复制失败，请重试')));
     }
   }
 
