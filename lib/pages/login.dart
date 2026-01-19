@@ -29,19 +29,25 @@ class _LoginPageState extends State<LoginPage> {
   // 检查生物识别是否可用
   Future<void> _checkBiometricAvailability() async {
     final isAvailable = await _authService.isBiometricAvailable();
-    setState(() {
-      _isBiometricAvailable = isAvailable;
-    });
+    // 加mounted检查，避免更新已销毁的State
+    if (mounted) {
+      setState(() {
+        _isBiometricAvailable = isAvailable;
+      });
+    }
   }
 
   // 加载锁定状态
   Future<void> _loadLockState() async {
     final attempts = await _authService.getFailedAttempts();
     final lockUntil = await _authService.getLockUntil();
-    setState(() {
-      _failedAttempts = attempts;
-      _lockUntil = lockUntil;
-    });
+    // 加mounted检查
+    if (mounted) {
+      setState(() {
+        _failedAttempts = attempts;
+        _lockUntil = lockUntil;
+      });
+    }
     // 启动定时器
     _startLockTimer();
   }
@@ -54,14 +60,19 @@ class _LoginPageState extends State<LoginPage> {
     // 如果当前处于锁定状态，启动定时器
     if (_isAccountLocked()) {
       _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        setState(() {
-          // 检查锁定时间是否已过
-          if (!_isAccountLocked()) {
-            // 锁定时间已过，停止定时器并重置锁定状态
-            timer.cancel();
-            _resetLockState();
-          }
-        });
+        // 加mounted检查
+        if (mounted) {
+          setState(() {
+            // 检查锁定时间是否已过
+            if (!_isAccountLocked()) {
+              // 锁定时间已过，停止定时器并重置锁定状态
+              timer.cancel();
+              _resetLockState();
+            }
+          });
+        } else {
+          timer.cancel();
+        }
       });
     }
   }
@@ -74,10 +85,13 @@ class _LoginPageState extends State<LoginPage> {
 
   // 重置锁定状态
   Future<void> _resetLockState() async {
-    setState(() {
-      _failedAttempts = 0;
-      _lockUntil = null;
-    });
+    // 加mounted检查
+    if (mounted) {
+      setState(() {
+        _failedAttempts = 0;
+        _lockUntil = null;
+      });
+    }
     await _authService.resetLockState();
   }
 
@@ -126,10 +140,12 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // 验证密码
+  // 验证密码（核心修复：跳转前加mounted检查）
   Future<void> _verifyPassword() async {
-    // 提前缓存“主页的ScaffoldMessenger”（避免用弹窗的context）
+    // 提前缓存需要的对象，避免异步后用context
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    // 提前获取NavigatorState（可选，进一步降低风险）
+    final navigator = Navigator.of(context);
 
     setState(() {
       _isLoading = true;
@@ -149,14 +165,19 @@ class _LoginPageState extends State<LoginPage> {
         // 保存登录状态
         await _authService.saveLoginStatus(true);
 
-        // 跳转到主界面
-        Navigator.pushReplacementNamed(context, '/');
+        // 修复关键1：跳转前检查mounted，避免操作已销毁的context
+        if (mounted) {
+          // 用提前获取的navigator跳转，而非直接用context
+          navigator.pushReplacementNamed('/');
+        }
       } else {
         // 密码错误，增加失败次数
-        setState(() {
-          _failedAttempts++;
-          _password = '';
-        });
+        if (mounted) {
+          setState(() {
+            _failedAttempts++;
+            _password = '';
+          });
+        }
 
         // 保存失败尝试次数到持久化存储
         await _authService.saveFailedAttempts(_failedAttempts);
@@ -164,9 +185,11 @@ class _LoginPageState extends State<LoginPage> {
         // 如果失败次数达到5次，锁定账号5分钟
         if (_failedAttempts >= 5) {
           final newLockUntil = DateTime.now().add(const Duration(minutes: 5));
-          setState(() {
-            _lockUntil = newLockUntil;
-          });
+          if (mounted) {
+            setState(() {
+              _lockUntil = newLockUntil;
+            });
+          }
           // 保存锁定时间到持久化存储
           await _authService.saveLockUntil(newLockUntil);
           // 启动定时器
@@ -183,16 +206,20 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       scaffoldMessenger.showSnackBar(const SnackBar(content: Text('验证失败，请重试')));
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      // 修复关键2：更新状态前检查mounted
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  // 使用生物识别登录
+  // 使用生物识别登录（核心修复：跳转前加mounted检查）
   Future<void> _loginWithBiometrics() async {
-    // 提前缓存“主页的ScaffoldMessenger”（避免用弹窗的context）
+    // 提前缓存需要的对象
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
     if (!_isBiometricAvailable) return;
 
@@ -208,7 +235,10 @@ class _LoginPageState extends State<LoginPage> {
 
         // 保存登录状态
         await _authService.saveLoginStatus(true);
-        Navigator.pushReplacementNamed(context, '/');
+        // 修复关键：跳转前检查mounted
+        if (mounted) {
+          navigator.pushReplacementNamed('/');
+        }
       } else {
         scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('生物识别失败，请重试或使用密码登录')),
@@ -219,16 +249,19 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text('生物识别失败，请重试')),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  // 忘记密码
+  // 忘记密码（核心修复：跳转前加mounted检查）
   void _onForgotPassword() {
-    // 提前缓存“主页的ScaffoldMessenger”（避免用弹窗的context）
+    // 提前缓存需要的对象
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
     showDialog(
       context: context,
@@ -246,31 +279,37 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () async {
               Navigator.pop(context);
               // 清除所有数据
-              setState(() {
-                _isLoading = true;
-              });
+              if (mounted) {
+                setState(() {
+                  _isLoading = true;
+                });
+              }
 
               try {
                 // 清除本地存储的所有数据
                 await _authService.saveLoginStatus(false);
                 // TODO: 清除所有账号密码数据
 
-                // 跳转到密码设置页面
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const PasswordSetupPage(isFirstTime: false),
-                  ),
-                );
+                // 修复关键：跳转前检查mounted
+                if (mounted) {
+                  // 跳转到密码设置页面
+                  navigator.pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const PasswordSetupPage(isFirstTime: false),
+                    ),
+                  );
+                }
               } catch (e) {
                 scaffoldMessenger.showSnackBar(
                   const SnackBar(content: Text('重置失败，请重试')),
                 );
               } finally {
-                setState(() {
-                  _isLoading = false;
-                });
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
               }
             },
             child: const Text('确认'),
