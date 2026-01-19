@@ -178,8 +178,8 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
-      mainAxisSpacing: 16.0,
-      crossAxisSpacing: 16.0,
+      mainAxisSpacing: 12.0,
+      crossAxisSpacing: 12.0,
       padding: const EdgeInsets.all(16.0),
       children: numbers.map((number) {
         if (number.isEmpty) {
@@ -198,8 +198,10 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
                 },
           style: ElevatedButton.styleFrom(
             shape: CircleBorder(),
-            padding: const EdgeInsets.all(20.0),
-            textStyle: const TextStyle(fontSize: 24.0),
+            padding: number == '删除'
+                ? const EdgeInsets.all(10.0)
+                : const EdgeInsets.all(16.0),
+            textStyle: TextStyle(fontSize: number == '删除' ? 16.0 : 20.0),
           ),
           child: Text(number),
         );
@@ -211,18 +213,20 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
   Widget _buildPasswordDisplay() {
     final password = _isSecondStep ? _confirmPassword : _password;
     final maxLength = 4;
+    final ThemeData theme = Theme.of(context);
+    final Color primaryColor = theme.colorScheme.primary;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(maxLength, (index) {
         return Container(
-          width: 40.0,
-          height: 40.0,
-          margin: const EdgeInsets.symmetric(horizontal: 8.0),
+          width: 36.0,
+          height: 36.0,
+          margin: const EdgeInsets.symmetric(horizontal: 12.0),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.orange, width: 2.0),
+            border: Border.all(color: primaryColor, width: 2.0),
             borderRadius: BorderRadius.circular(8.0),
-            color: index < password.length ? Colors.orange : Colors.transparent,
+            color: index < password.length ? primaryColor : Colors.transparent,
           ),
         );
       }),
@@ -303,34 +307,36 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
               )
             : null,
       ),
-      body: Stack(
-        children: [
-          if (_isSettingHint)
-            _buildPasswordHintSetup() // 显示密码提示设置界面
-          else
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    _isSecondStep ? '请再次输入密码确认' : '请设置4位纯数字解锁密码，保护你的账号安全',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 18.0),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            if (_isSettingHint)
+              _buildPasswordHintSetup() // 显示密码提示设置界面
+            else
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      _isSecondStep ? '请再次输入密码确认' : '请设置4位纯数字解锁密码，保护你的账号安全',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 32.0),
-                _buildPasswordDisplay(),
-                const SizedBox(height: 64.0),
-                _buildNumberPad(),
-              ],
-            ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withValues(alpha: 0.5),
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-        ],
+                  const SizedBox(height: 24.0),
+                  _buildPasswordDisplay(),
+                  const SizedBox(height: 32.0),
+                  _buildNumberPad(),
+                ],
+              ),
+            if (_isLoading)
+              Container(
+                color: Colors.black.withValues(alpha: 0.5),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        ),
       ),
     );
   }

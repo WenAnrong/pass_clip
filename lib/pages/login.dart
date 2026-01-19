@@ -328,8 +328,8 @@ class _LoginPageState extends State<LoginPage> {
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
-      mainAxisSpacing: 16.0,
-      crossAxisSpacing: 16.0,
+      mainAxisSpacing: 12.0,
+      crossAxisSpacing: 12.0,
       padding: const EdgeInsets.all(16.0),
       children: numbers.map((number) {
         if (number.isEmpty) {
@@ -348,8 +348,10 @@ class _LoginPageState extends State<LoginPage> {
                 },
           style: ElevatedButton.styleFrom(
             shape: CircleBorder(),
-            padding: const EdgeInsets.all(20.0),
-            textStyle: const TextStyle(fontSize: 24.0),
+            padding: number == '删除'
+                ? const EdgeInsets.all(10.0)
+                : const EdgeInsets.all(16.0),
+            textStyle: TextStyle(fontSize: number == '删除' ? 16.0 : 20.0),
           ),
           child: Text(number),
         );
@@ -360,20 +362,20 @@ class _LoginPageState extends State<LoginPage> {
   // 构建密码显示区域
   Widget _buildPasswordDisplay() {
     final maxLength = 4;
+    final ThemeData theme = Theme.of(context);
+    final Color primaryColor = theme.colorScheme.primary;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(maxLength, (index) {
         return Container(
-          width: 40.0,
-          height: 40.0,
-          margin: const EdgeInsets.symmetric(horizontal: 8.0),
+          width: 36.0,
+          height: 36.0,
+          margin: const EdgeInsets.symmetric(horizontal: 12.0),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.orange, width: 2.0),
+            border: Border.all(color: primaryColor, width: 2.0),
             borderRadius: BorderRadius.circular(8.0),
-            color: index < _password.length
-                ? Colors.orange
-                : Colors.transparent,
+            color: index < _password.length ? primaryColor : Colors.transparent,
           ),
         );
       }),
@@ -383,64 +385,69 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 64.0),
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  '账号密码管理',
-                  style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 32.0),
-              if (_isAccountLocked())
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 32.0),
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
                   child: Text(
-                    '密码错误次数过多，${_getRemainingLockTime()}后重试',
-                    style: const TextStyle(color: Colors.red, fontSize: 18.0),
+                    '秘荚登录',
+                    style: TextStyle(
+                      fontSize: 28.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                )
-              else
-                Column(
-                  children: [
-                    _buildPasswordDisplay(),
-                    const SizedBox(height: 32.0),
-                    if (_isBiometricAvailable)
-                      ElevatedButton.icon(
-                        onPressed: _isLoading ? null : _loginWithBiometrics,
-                        icon: const Icon(Icons.fingerprint),
-                        label: const Text('使用生物识别登录'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32.0,
-                            vertical: 12.0,
-                          ),
-                          textStyle: const TextStyle(fontSize: 18.0),
-                        ),
-                      ),
-                  ],
                 ),
-              const SizedBox(height: 32.0),
-              if (!_isAccountLocked()) _buildNumberPad(),
-              const Spacer(),
-              TextButton(
-                onPressed: _onPasswordHint,
-                child: const Text('密码提示？'),
-              ),
-              const SizedBox(height: 16.0),
-            ],
-          ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withValues(alpha: 0.5),
-              child: const Center(child: CircularProgressIndicator()),
+                const SizedBox(height: 16.0),
+                if (_isAccountLocked())
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      '密码错误次数过多，${_getRemainingLockTime()}后重试',
+                      style: const TextStyle(color: Colors.red, fontSize: 16.0),
+                    ),
+                  )
+                else
+                  Column(
+                    children: [
+                      _buildPasswordDisplay(),
+                      const SizedBox(height: 24.0),
+                      if (_isBiometricAvailable)
+                        ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _loginWithBiometrics,
+                          icon: const Icon(Icons.fingerprint),
+                          label: const Text('使用生物识别登录'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24.0,
+                              vertical: 10.0,
+                            ),
+                            textStyle: const TextStyle(fontSize: 16.0),
+                          ),
+                        ),
+                    ],
+                  ),
+                const SizedBox(height: 16.0),
+                if (!_isAccountLocked()) _buildNumberPad(),
+                const Spacer(),
+                TextButton(
+                  onPressed: _onPasswordHint,
+                  child: const Text('密码提示？'),
+                ),
+                const SizedBox(height: 16.0),
+              ],
             ),
-        ],
+            if (_isLoading)
+              Container(
+                color: Colors.black.withValues(alpha: 0.5),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        ),
       ),
     );
   }
