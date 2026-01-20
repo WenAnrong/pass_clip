@@ -4,6 +4,7 @@ import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'package:pass_clip/utils/refresh_notifier.dart';
+import 'package:pass_clip/utils/snackbar_manager.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -211,8 +212,6 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               onPressed: () async {
-                // 异步操作前，提前缓存需要的对象（避免跨异步用context）
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
                 final navigator = Navigator.of(context);
 
                 // 执行异步操作
@@ -224,9 +223,7 @@ class _HomePageState extends State<HomePage> {
 
                 // 用缓存的对象执行操作
                 navigator.pop();
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(content: Text('删除成功')),
-                );
+                SnackBarManager().show(context, '删除成功');
               },
               child: const Text('删除'),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
+import 'package:pass_clip/utils/snackbar_manager.dart';
 import 'dart:async';
 
 class LoginPage extends StatefulWidget {
@@ -128,9 +129,7 @@ class _LoginPageState extends State<LoginPage> {
 
   // 验证密码（核心修复：跳转前加mounted检查）
   Future<void> _verifyPassword() async {
-    // 提前缓存需要的对象，避免异步后用context
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    // 提前获取NavigatorState（可选，进一步降低风险）
+    // 提前获取NavigatorState
     final navigator = Navigator.of(context);
 
     setState(() {
@@ -185,27 +184,23 @@ class _LoginPageState extends State<LoginPage> {
           await _authService.saveLockUntil(null);
         }
 
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('密码错误，剩余尝试次数：${5 - _failedAttempts}')),
-        );
+        if (mounted) {
+          SnackBarManager().show(context, '密码错误，剩余尝试次数：${5 - _failedAttempts}');
+        }
       }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('验证失败，请重试')));
-    } finally {
-      // 修复关键2：更新状态前检查mounted
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        SnackBarManager().show(context, '验证失败，请重试');
       }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   // 显示密码提示
   void _onPasswordHint() {
-    // 提前缓存需要的对象
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
     setState(() {
       _isLoading = true;
     });
@@ -246,9 +241,7 @@ class _LoginPageState extends State<LoginPage> {
               _isLoading = false;
             });
 
-            scaffoldMessenger.showSnackBar(
-              const SnackBar(content: Text('获取密码提示失败，请重试')),
-            );
+            SnackBarManager().show(context, '获取密码提示失败，请重试');
           }
         });
   }

@@ -3,6 +3,7 @@ import 'package:pass_clip/services/import_export_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:pass_clip/utils/snackbar_manager.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -130,8 +131,6 @@ class _ExportPageState extends State<ExportPage> {
 
   // 导出数据
   Future<void> _exportData() async {
-    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     setState(() {
       _isExporting = true;
@@ -157,13 +156,17 @@ class _ExportPageState extends State<ExportPage> {
 
       navigator.pop();
       // 显示成功提示
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('导出成功：$path')));
+      if (mounted) {
+        SnackBarManager().show(context, '导出成功：$path');
+      }
     } catch (e) {
       setState(() {
         _isExporting = false;
       });
       // 显示失败提示
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('导出失败：$e')));
+      if (mounted) {
+        SnackBarManager().show(context, '导出失败：$e');
+      }
     }
   }
 
@@ -241,9 +244,6 @@ class _ImportPageState extends State<ImportPage> {
 
   // 选择文件
   Future<void> _selectFile() async {
-    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -261,19 +261,20 @@ class _ImportPageState extends State<ImportPage> {
       }
     } catch (e) {
       // 显示失败提示
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('选择文件失败：$e')));
+      if (mounted) {
+        SnackBarManager().show(context, '选择文件失败：$e');
+      }
     }
   }
 
   // 导入数据
   Future<void> _importData() async {
-    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
     if (_fileContent == null) {
       // 显示提示
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('请先选择文件')));
+      SnackBarManager().show(context, '请先选择文件');
+
       return;
     }
 
@@ -297,15 +298,17 @@ class _ImportPageState extends State<ImportPage> {
       // 导入成功，返回上一页
       navigator.pop();
       // 显示成功提示
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('导入成功，共导入$importedCount条账号信息')),
-      );
+      if (mounted) {
+        SnackBarManager().show(context, '导入成功，共导入$importedCount条账号信息');
+      }
     } catch (e) {
       setState(() {
         _isImporting = false;
       });
       // 显示失败提示
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('导入失败：$e')));
+      if (mounted) {
+        SnackBarManager().show(context, '导入失败：$e');
+      }
     }
   }
 

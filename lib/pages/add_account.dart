@@ -4,6 +4,7 @@ import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'dart:math';
 import 'package:pass_clip/utils/refresh_notifier.dart';
+import 'package:pass_clip/utils/snackbar_manager.dart';
 
 class AddAccountPage extends StatefulWidget {
   final Account? account; // 编辑模式时传入的已有账号，新增时为null
@@ -108,9 +109,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
   Future<void> _saveAccount() async {
     // 先检查页面是否存活，避免无效操作
     if (!mounted) return;
-
-    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
     // 验证表单所有字段是否填写完整
@@ -153,9 +151,12 @@ class _AddAccountPageState extends State<AddAccountPage> {
       // 保存成功后，发送刷新通知
       navigator.pop();
       RefreshNotifier.instance.notifyRefresh();
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text(widget.account != null ? '更新成功' : '保存成功')),
-      );
+      if (mounted) {
+        SnackBarManager().show(
+          context,
+          widget.account != null ? '更新成功' : '保存成功',
+        );
+      }
     }
   }
 

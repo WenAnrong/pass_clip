@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
+import 'package:pass_clip/utils/snackbar_manager.dart';
 
 class PasswordSetupPage extends StatefulWidget {
   const PasswordSetupPage({super.key, this.isFirstTime = true});
@@ -83,9 +84,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
         _confirmPassword = '';
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('两次密码不一致，请重新输入')));
+      SnackBarManager().show(context, '两次密码不一致，请重新输入');
     } else {
       // 密码一致，保存密码
       _savePassword();
@@ -94,9 +93,6 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
 
   // 保存密码
   Future<void> _savePassword() async {
-    // 提前缓存ScaffoldMessenger（避免跨异步用context）
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
     setState(() {
       _isLoading = true;
     });
@@ -106,7 +102,9 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
       await _authService.saveLoginStatus(true); // 标记“已设置密码”，跳过后续首次启动流程
 
       // 显示成功提示
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('密码设置成功')));
+      if (mounted) {
+        SnackBarManager().show(context, '密码设置成功');
+      }
 
       // 进入密码提示设置步骤
       setState(() {
@@ -115,7 +113,10 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
       });
     } catch (e) {
       // 显示失败提示
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('密码设置失败：$e')));
+      if (mounted) {
+        SnackBarManager().show(context, '密码设置失败：$e');
+      }
+
       setState(() {
         _isLoading = false;
       });
@@ -124,8 +125,6 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
 
   // 保存密码提示
   Future<void> _savePasswordHint() async {
-    // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
     setState(() {
@@ -136,7 +135,9 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
       await _authService.savePasswordHint(_passwordHint); // 保存密码提示到本地存储
 
       // 显示成功提示
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('密码提示设置成功')));
+      if (mounted) {
+        SnackBarManager().show(context, '密码提示设置成功');
+      }
 
       // 延迟导航到主界面，清除所有之前的界面
       Future.delayed(const Duration(milliseconds: 200), () {
@@ -144,7 +145,10 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
       });
     } catch (e) {
       // 显示失败提示
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('密码提示设置失败：$e')));
+      if (mounted) {
+        SnackBarManager().show(context, '密码提示设置失败：$e');
+      }
+
       setState(() {
         _isLoading = false;
       });

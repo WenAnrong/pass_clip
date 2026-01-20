@@ -4,6 +4,7 @@ import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'package:pass_clip/pages/add_account.dart';
 import 'package:pass_clip/utils/refresh_notifier.dart';
+import 'package:pass_clip/utils/snackbar_manager.dart';
 
 class AccountDetailPage extends StatefulWidget {
   final String? accountId;
@@ -77,13 +78,11 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
       // 先检查页面是否存活，避免无效操作
       if (!mounted) return;
 
-      // 提前缓存ScaffoldMessenger和Navigator（避免跨异步用context）
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
       final navigator = Navigator.of(context);
 
       // 统一处理错误信息，显示提示（此时mounted=true，安全）
       final errorMsg = e.toString().contains('未找到') ? '未找到该账号信息' : '未提供账号ID';
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text(errorMsg)));
+      SnackBarManager().show(context, errorMsg);
 
       // 延迟退出，使用缓存的navigator + mounted检查（消除跨异步警告）
       Future.delayed(const Duration(milliseconds: 1500), () {
@@ -103,14 +102,16 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
   Future<void> _copyToClipboard(String text, String successMessage) async {
     // 先检查页面是否存活，避免无效操作
     if (!mounted) return;
-    // 提前缓存ScaffoldMessenger（避免跨异步用context）
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       await Clipboard.setData(ClipboardData(text: text));
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text(successMessage)));
+      if (mounted) {
+        SnackBarManager().show(context, successMessage);
+      }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('复制失败，请重试')));
+      if (mounted) {
+        SnackBarManager().show(context, '复制失败，请重试');
+      }
     }
   }
 
