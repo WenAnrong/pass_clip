@@ -1,11 +1,133 @@
 import 'dart:convert';
 import 'package:csv/csv.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 
+// WebDAV配置模型
+class WebDAVConfig {
+  final String url;
+  final String username;
+  final String password;
+
+  WebDAVConfig({
+    required this.url,
+    required this.username,
+    required this.password,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {'url': url, 'username': username, 'password': password};
+  }
+
+  factory WebDAVConfig.fromMap(Map<String, dynamic> map) {
+    return WebDAVConfig(
+      url: map['url'] ?? '',
+      username: map['username'] ?? '',
+      password: map['password'] ?? '',
+    );
+  }
+}
+
 class ImportExportService {
   final StorageService _storageService = StorageService();
+  static const String _webdavConfigKey = 'webdav_config';
+
+  // 获取SharedPreferences实例
+  Future<SharedPreferences> _getPrefs() async {
+    return await SharedPreferences.getInstance();
+  }
+
+  // 保存WebDAV配置
+  Future<void> saveWebDAVConfig(WebDAVConfig config) async {
+    final prefs = await _getPrefs();
+    await prefs.setString(_webdavConfigKey, json.encode(config.toMap()));
+  }
+
+  // 获取WebDAV配置
+  Future<WebDAVConfig?> getWebDAVConfig() async {
+    final prefs = await _getPrefs();
+    final configJson = prefs.getString(_webdavConfigKey);
+    if (configJson == null) return null;
+    final configMap = json.decode(configJson) as Map<String, dynamic>;
+    return WebDAVConfig.fromMap(configMap);
+  }
+
+  // 测试WebDAV连接
+  Future<bool> testWebDAVConnection(WebDAVConfig config) async {
+    try {
+      final response = await http.get(
+        Uri.parse(config.url),
+        headers: {
+          'Authorization':
+              'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 上传JSON文件到WebDAV
+  Future<void> uploadToWebDAV(WebDAVConfig config) async {
+    try {
+      // 导出JSON数据
+      final jsonData = await exportToJson();
+
+      // 生成文件名
+      final fileName = generateExportFileName('json');
+
+      // 上传到WebDAV服务器
+      final response = await http.put(
+        Uri.parse(
+          '${config.url.endsWith('/') ? config.url : '${config.url}/'}$fileName',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization':
+              'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
+        },
+        body: jsonData,
+      );
+
+      if (response.statusCode != 201 && response.statusCode != 204) {
+        throw Exception('上传失败：${response.statusCode} ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      throw Exception('WebDAV上传失败：$e');
+    }
+  }
+
+  // 从WebDAV下载JSON文件
+  Future<int> downloadFromWebDAV(WebDAVConfig config) async {
+    try {
+      // 生成文件名
+      final fileName = generateExportFileName('json');
+
+      // 从WebDAV服务器下载
+      final response = await http.get(
+        Uri.parse(
+          '${config.url.endsWith('/') ? config.url : '${config.url}/'}$fileName',
+        ),
+        headers: {
+          'Authorization':
+              'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('下载失败：${response.statusCode} ${response.reasonPhrase}');
+      }
+
+      // 导入数据
+      return await importFromJson(response.body);
+    } catch (e) {
+      throw Exception('WebDAV下载失败：$e');
+    }
+  }
 
   // 导出为JSON格式
   Future<String> exportToJson() async {

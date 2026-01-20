@@ -8,6 +8,7 @@ import 'package:pass_clip/pages/profile.dart';
 import 'package:pass_clip/pages/category_management.dart';
 import 'package:pass_clip/pages/login.dart';
 import 'package:pass_clip/pages/password_setup.dart';
+import 'package:pass_clip/pages/webdav_page.dart';
 
 class AppRouter {
   static Map<String, WidgetBuilder> routes = {
@@ -20,5 +21,6 @@ class AppRouter {
     '/categoryManagement': (context) => const CategoryManagementPage(),
     '/login': (context) => const LoginPage(),
     '/passwordSetup': (context) => const PasswordSetupPage(),
+    '/webdav': (context) => const WebDAVPage(),
   };
 }

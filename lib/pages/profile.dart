@@ -72,6 +72,17 @@ class ProfilePage extends StatelessWidget {
               },
             ),
           ),
+          // WebDAV同步
+          Card(
+            margin: const EdgeInsets.all(16.0),
+            child: ListTile(
+              title: const Text('WebDAV同步'),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                Navigator.pushNamed(context, '/webdav');
+              },
+            ),
+          ),
 
           // 关于我们
           Card(
