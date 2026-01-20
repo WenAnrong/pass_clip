@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pass_clip/services/auth_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -41,9 +42,10 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
     });
   }
 
-  // 检查密码长度是否为4位
+  // 检查密码是否为4位数字
   bool _isPasswordValid(String password) {
-    return password.length == 4;
+    // 检查长度和是否全为数字
+    return password.length == 4 && RegExp(r'^\d+$').hasMatch(password);
   }
 
   // 保存密码
@@ -136,6 +138,9 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
                             keyboardType: TextInputType.number,
                             maxLength: 4,
                             obscureText: _isObscureOld,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return '请输入旧密码';
@@ -172,6 +177,9 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
                       keyboardType: TextInputType.number,
                       maxLength: 4,
                       obscureText: _isObscureNew,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ], // 只允许输入数字
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return '请输入新密码';
@@ -206,6 +214,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
                       keyboardType: TextInputType.number,
                       maxLength: 4,
                       obscureText: _isObscureConfirm,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return '请确认新密码';
