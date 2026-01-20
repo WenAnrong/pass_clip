@@ -161,8 +161,8 @@ class _ExportPageState extends State<ExportPage> {
       }
 
       // 保存到本地文件
-      final directory = await getExternalStorageDirectory();
-      final path = '${directory?.path}/$fileName';
+      final directory = await getApplicationDocumentsDirectory();
+      final path = '${directory.path}/$fileName';
       final file = File(path);
       await file.writeAsString(exportData);
 
