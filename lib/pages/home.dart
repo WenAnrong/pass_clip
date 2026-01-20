@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pass_clip/components/account_list_item.dart';
 import 'package:pass_clip/models/account.dart';
@@ -21,7 +22,12 @@ class _HomePageState extends State<HomePage> {
   String _selectedCategory = '全部分类';
   String _searchText = '';
   String _sortOption = '按时间最新';
-  bool _isLoading = true; // 数据加载状态（控制加载动画）
+
+  // 缓存筛选和排序后的账号列表
+  List<Account> _filteredAndSortedAccounts = [];
+
+  // 搜索防抖计时器
+  Timer? _searchTimer;
 
   @override
   void initState() {
@@ -41,31 +47,31 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     // 取消刷新通知器订阅
     RefreshNotifier.instance.removeListener(_refreshCallback);
+
+    // 取消搜索计时器
+    _searchTimer?.cancel();
+
     super.dispose();
   }
 
   // 加载数据
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     _accounts = await _storageService.getAccounts();
-    _categories = await _storageService.getCategories();
 
-    // 更新分类计数
-    for (var category in _categories) {
-      await _storageService.updateCategoryCount(category.name);
+    // 批量更新分类计数
+    final categoryNames = _categories.map((c) => c.name).toList();
+    for (final name in categoryNames) {
+      await _storageService.updateCategoryCount(name);
     }
+
     _categories = await _storageService.getCategories();
 
-    setState(() {
-      _isLoading = false;
-    });
+    // 重新筛选和排序账号
+    _updateFilteredAndSortedAccounts();
   }
 
-  // 搜索和筛选账号
-  List<Account> _getFilteredAccounts() {
+  // 更新筛选和排序后的账号列表
+  void _updateFilteredAndSortedAccounts() {
     List<Account> filtered = _accounts;
 
     // 按分类筛选
@@ -104,7 +110,26 @@ class _HomePageState extends State<HomePage> {
         break;
     }
 
-    return filtered;
+    setState(() {
+      _filteredAndSortedAccounts = filtered;
+    });
+  }
+
+  // 处理搜索文本变化（防抖）
+  void _onSearchTextChanged(String text) {
+    setState(() {
+      _searchText = text;
+    });
+
+    // 取消之前的计时器
+    _searchTimer?.cancel();
+
+    // 设置新的计时器，延迟500毫秒后更新筛选结果
+    _searchTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _updateFilteredAndSortedAccounts();
+      }
+    });
   }
 
   // 显示排序选项
@@ -123,9 +148,8 @@ class _HomePageState extends State<HomePage> {
                     ? const Icon(Icons.check)
                     : null,
                 onTap: () {
-                  setState(() {
-                    _sortOption = '按时间最新';
-                  });
+                  _sortOption = '按时间最新';
+                  _updateFilteredAndSortedAccounts();
                   Navigator.pop(context);
                 },
               ),
@@ -135,9 +159,8 @@ class _HomePageState extends State<HomePage> {
                     ? const Icon(Icons.check)
                     : null,
                 onTap: () {
-                  setState(() {
-                    _sortOption = '按名称升序';
-                  });
+                  _sortOption = '按名称升序';
+                  _updateFilteredAndSortedAccounts();
                   Navigator.pop(context);
                 },
               ),
@@ -147,9 +170,8 @@ class _HomePageState extends State<HomePage> {
                     ? const Icon(Icons.check)
                     : null,
                 onTap: () {
-                  setState(() {
-                    _sortOption = '按名称降序';
-                  });
+                  _sortOption = '按名称降序';
+                  _updateFilteredAndSortedAccounts();
                   Navigator.pop(context);
                 },
               ),
@@ -159,9 +181,8 @@ class _HomePageState extends State<HomePage> {
                     ? const Icon(Icons.check)
                     : null,
                 onTap: () {
-                  setState(() {
-                    _sortOption = '按时间最早';
-                  });
+                  _sortOption = '按时间最早';
+                  _updateFilteredAndSortedAccounts();
                   Navigator.pop(context);
                 },
               ),
@@ -184,7 +205,6 @@ class _HomePageState extends State<HomePage> {
               ListTile(
                 title: const Text('分类管理'),
                 onTap: () {
-                  Navigator.pop(context);
                   Navigator.pushNamed(context, '/categoryManagement');
                 },
               ),
@@ -236,8 +256,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredAccounts = _getFilteredAccounts();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('秘荚'),
@@ -250,82 +268,75 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // 搜索栏
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextField(
-                    onChanged: (text) {
-                      setState(() {
-                        _searchText = text;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: '搜索平台、账号或分类',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                  ),
+      body: Column(
+        children: [
+          // 搜索栏
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              onChanged: _onSearchTextChanged,
+              decoration: InputDecoration(
+                hintText: '搜索平台、账号或分类',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
-                // 分类筛选栏
-                SizedBox(
-                  height: 48,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _categories.length + 1,
+              ),
+            ),
+          ),
+          // 分类筛选栏
+          SizedBox(
+            height: 48,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _categories.length + 1,
+              itemBuilder: (context, index) {
+                String category;
+                if (index == 0) {
+                  category = '全部分类';
+                } else {
+                  category = _categories[index - 1].name;
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12.0, left: 8.0),
+                  child: FilterChip(
+                    label: Text(category),
+                    selected: _selectedCategory == category,
+                    onSelected: (selected) {
+                      _selectedCategory = category;
+                      _updateFilteredAndSortedAccounts();
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+          // 账号列表
+          Expanded(
+            child: _filteredAndSortedAccounts.isEmpty
+                ? const Center(child: Text('暂无账号信息'))
+                : ListView.builder(
+                    itemCount: _filteredAndSortedAccounts.length,
                     itemBuilder: (context, index) {
-                      String category;
-                      if (index == 0) {
-                        category = '全部分类';
-                      } else {
-                        category = _categories[index - 1].name;
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12.0, left: 8.0),
-                        child: FilterChip(
-                          label: Text(category),
-                          selected: _selectedCategory == category,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = category;
-                            });
-                          },
-                        ),
+                      final account = _filteredAndSortedAccounts[index];
+                      return AccountListItem(
+                        account: account,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/accountDetail',
+                            arguments: account.id,
+                          );
+                        },
+                        onLongPress: () {
+                          _showDeleteConfirm(account);
+                        },
                       );
                     },
                   ),
-                ),
-                // 账号列表
-                Expanded(
-                  child: filteredAccounts.isEmpty
-                      ? const Center(child: Text('暂无账号信息'))
-                      : ListView.builder(
-                          itemCount: filteredAccounts.length,
-                          itemBuilder: (context, index) {
-                            final account = filteredAccounts[index];
-                            return AccountListItem(
-                              account: account,
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/accountDetail',
-                                  arguments: account.id,
-                                );
-                              },
-                              onLongPress: () {
-                                _showDeleteConfirm(account);
-                              },
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
+          ),
+        ],
+      ),
     );
   }
 }
