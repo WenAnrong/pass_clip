@@ -164,4 +164,12 @@ class AuthService {
   Future<void> deletePasswordHint() async {
     await _storage.delete(key: 'password_hint');
   }
+
+  // 清除所有数据
+  Future<void> clearAllData() async {
+    // 删除所有存储的数据
+    await _storage.deleteAll();
+    // 重置初始化状态，确保下次使用时重新生成密钥
+    _isInitialized = false;
+  }
 }
