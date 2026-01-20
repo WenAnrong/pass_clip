@@ -177,6 +177,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
     }
 
     // 弹出下载模式选择对话框
+    if (!mounted) return;
     final bool? result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -240,7 +241,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
         final modeText = _overwriteMode ? '覆盖' : '合并';
         SnackBarManager().show(
           context,
-          '数据下载成功，已${modeText}本地数据，共导入$importedCount条账号信息',
+          '数据下载成功，已$modeText本地数据，共导入$importedCount条账号信息',
         );
       }
     } catch (e) {

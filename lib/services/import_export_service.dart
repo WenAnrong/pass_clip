@@ -129,9 +129,6 @@ class ImportExportService {
           'Authorization':
               'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
         });
-        final deleteResponse = await client.send(deleteRequest);
-        // 删除操作通常返回204 No Content或200 OK，表示成功
-        // 忽略删除失败的情况，继续执行上传
       }
 
       // 4. 上传新文件
@@ -143,7 +140,6 @@ class ImportExportService {
       });
       putRequest.body = jsonData;
       final putResponse = await client.send(putRequest);
-      final putResponseBody = await putResponse.stream.bytesToString();
       client.close();
 
       // 坚果云可能返回不同的状态码，我们接受200-299之间的状态码
