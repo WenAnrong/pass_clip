@@ -346,7 +346,7 @@ class _ImportPageState extends State<ImportPage> {
                 width: double.infinity,
                 height: 150.0,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
+                  border: Border.all(),
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Center(

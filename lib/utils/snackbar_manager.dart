@@ -40,32 +40,19 @@ class SnackBarManager {
           left: screenSize.width * 0.1,
           right: screenSize.width * 0.1,
           child: Material(
-            color: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
                 // 气泡样式
-                color:
-                    Theme.of(context).snackBarTheme.backgroundColor ??
-                    Colors.black87,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
+                  BoxShadow(blurRadius: 10, offset: const Offset(0, 5)),
                 ],
               ),
               child: Text(
                 message,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color:
-                      Theme.of(context).snackBarTheme.contentTextStyle?.color ??
-                      Colors.white,
-                  fontSize: 14,
-                ),
+                style: TextStyle(fontSize: 14),
               ),
             ),
           ),

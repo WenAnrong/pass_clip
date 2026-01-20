@@ -195,10 +195,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                '将下载的数据合并到本地，不影响现有数据',
-                style: TextStyle(fontSize: 14.0, color: Colors.grey),
-              ),
+              child: Text('将下载的数据合并到本地，不影响现有数据'),
             ),
             const SizedBox(height: 16.0),
             SimpleDialogOption(
@@ -212,10 +209,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                '清空本地所有数据，使用下载的数据完全替换',
-                style: TextStyle(fontSize: 14.0, color: Colors.grey),
-              ),
+              child: Text('清空本地所有数据，使用下载的数据完全替换'),
             ),
           ],
         );
@@ -399,10 +393,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
                           ],
                         ),
                         const SizedBox(height: 16.0),
-                        const Text(
-                          '上传说明：将当前所有账号数据以JSON格式上传到WebDAV服务器。',
-                          style: TextStyle(fontSize: 12.0, color: Colors.grey),
-                        ),
+                        const Text('上传说明：将当前所有账号数据以JSON格式上传到WebDAV服务器。'),
                       ],
                     ),
                   ),

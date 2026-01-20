@@ -314,9 +314,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                                   margin: const EdgeInsets.only(bottom: 8.0),
                                   padding: const EdgeInsets.all(8.0),
                                   decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                    ),
+                                    border: Border.all(),
                                     borderRadius: BorderRadius.circular(4.0),
                                   ),
                                   child: Row(
@@ -335,9 +333,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                                             const SizedBox(height: 4.0),
                                             Text(
                                               _customFields[index]['value']!,
-                                              style: TextStyle(
-                                                color: Colors.grey.shade600,
-                                              ),
                                             ),
                                           ],
                                         ),

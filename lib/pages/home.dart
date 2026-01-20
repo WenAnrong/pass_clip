@@ -296,7 +296,6 @@ class _HomePageState extends State<HomePage> {
                               _selectedCategory = category;
                             });
                           },
-                          selectedColor: Theme.of(context).primaryColor,
                         ),
                       );
                     },

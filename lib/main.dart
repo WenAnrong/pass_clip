@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
       theme: appTheme,
       // 暗色主题配置
       darkTheme: darkAppTheme,
-      // 主题模式：跟随系统设置（推荐）
+      // 主题模式：跟随系统设置
       themeMode: ThemeMode.system,
     );
   }
