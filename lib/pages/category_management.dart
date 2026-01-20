@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'package:pass_clip/utils/refresh_notifier.dart';
-import 'package:pass_clip/utils/snackbar_manager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CategoryManagementPage extends StatefulWidget {
   const CategoryManagementPage({super.key});
@@ -48,7 +48,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
 
       // 检查分类是否已存在
       if (_categories.any((category) => category.name == categoryName)) {
-        SnackBarManager().show(context, '分类已存在');
+        Fluttertoast.showToast(msg: '分类已存在');
         return;
       }
 
@@ -63,9 +63,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
         _isAdding = false;
       });
 
-      if (mounted) {
-        SnackBarManager().show(context, '分类创建成功');
-      }
+      Fluttertoast.showToast(msg: '分类创建成功');
     }
   }
 
@@ -90,7 +88,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
             category.name == newCategoryName &&
             category.name != _editingCategory,
       )) {
-        SnackBarManager().show(context, '分类已存在');
+        Fluttertoast.showToast(msg: '分类已存在');
 
         return;
       }
@@ -121,19 +119,16 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
         _isEditing = false;
       });
 
-      if (mounted) {
-        SnackBarManager().show(context, '分类更新成功');
-      }
+      Fluttertoast.showToast(msg: '分类更新成功');
     }
   }
 
   // 删除分类
   void _showDeleteConfirm(String categoryName) {
-    final stateContext = context;
     final navigator = Navigator.of(context);
 
     if (categoryName == '未分类') {
-      SnackBarManager().show(context, '默认分类不可删除');
+      Fluttertoast.showToast(msg: '默认分类不可删除');
 
       return;
     }
@@ -157,11 +152,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
                 RefreshNotifier.instance.notifyRefresh(); // 发送刷新通知
                 await _loadCategories();
                 navigator.pop();
-                if (mounted) {
-                  if (stateContext.mounted) {
-                    SnackBarManager().show(stateContext, '分类删除成功');
-                  }
-                }
+                Fluttertoast.showToast(msg: '分类删除成功');
               },
               child: const Text('删除'),
             ),

@@ -4,7 +4,7 @@ import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'dart:math';
 import 'package:pass_clip/utils/refresh_notifier.dart';
-import 'package:pass_clip/utils/snackbar_manager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class AddAccountPage extends StatefulWidget {
   final Account? account; // 编辑模式时传入的已有账号，新增时为null
@@ -151,12 +151,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
       // 保存成功后，发送刷新通知
       navigator.pop();
       RefreshNotifier.instance.notifyRefresh();
-      if (mounted) {
-        SnackBarManager().show(
-          context,
-          widget.account != null ? '更新成功' : '保存成功',
-        );
-      }
+      Fluttertoast.showToast(msg: widget.account != null ? '更新成功' : '保存成功');
     }
   }
 

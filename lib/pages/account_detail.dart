@@ -4,7 +4,7 @@ import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'package:pass_clip/pages/add_account.dart';
 import 'package:pass_clip/utils/refresh_notifier.dart';
-import 'package:pass_clip/utils/snackbar_manager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class AccountDetailPage extends StatefulWidget {
   final String? accountId;
@@ -82,7 +82,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
 
       // 统一处理错误信息，显示提示（此时mounted=true，安全）
       final errorMsg = e.toString().contains('未找到') ? '未找到该账号信息' : '未提供账号ID';
-      SnackBarManager().show(context, errorMsg);
+      Fluttertoast.showToast(msg: errorMsg);
 
       // 延迟退出，使用缓存的navigator + mounted检查（消除跨异步警告）
       Future.delayed(const Duration(milliseconds: 1500), () {
@@ -105,13 +105,10 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
 
     try {
       await Clipboard.setData(ClipboardData(text: text));
-      if (mounted) {
-        SnackBarManager().show(context, successMessage);
-      }
+
+      Fluttertoast.showToast(msg: successMessage);
     } catch (e) {
-      if (mounted) {
-        SnackBarManager().show(context, '复制失败，请重试');
-      }
+      Fluttertoast.showToast(msg: '复制失败，请重试');
     }
   }
 

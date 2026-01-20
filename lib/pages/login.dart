@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
-import 'package:pass_clip/utils/snackbar_manager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 
 class LoginPage extends StatefulWidget {
@@ -184,14 +184,10 @@ class _LoginPageState extends State<LoginPage> {
           await _authService.saveLockUntil(null);
         }
 
-        if (mounted) {
-          SnackBarManager().show(context, '密码错误，剩余尝试次数：${5 - _failedAttempts}');
-        }
+        Fluttertoast.showToast(msg: '密码错误，剩余尝试次数：${5 - _failedAttempts}');
       }
     } catch (e) {
-      if (mounted) {
-        SnackBarManager().show(context, '验证失败，请重试');
-      }
+      Fluttertoast.showToast(msg: '验证失败，请重试');
     } finally {
       setState(() {
         _isLoading = false;
@@ -241,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
               _isLoading = false;
             });
 
-            SnackBarManager().show(context, '获取密码提示失败，请重试');
+            Fluttertoast.showToast(msg: '获取密码提示失败，请重试');
           }
         });
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/import_export_service.dart';
-import 'package:pass_clip/utils/snackbar_manager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class WebDAVPage extends StatefulWidget {
   const WebDAVPage({super.key});
@@ -50,9 +50,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
         _passwordController.text = config.password;
       }
     } catch (e) {
-      if (mounted) {
-        SnackBarManager().show(context, '加载配置失败：$e');
-      }
+      Fluttertoast.showToast(msg: '加载配置失败：$e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -79,13 +77,10 @@ class _WebDAVPageState extends State<WebDAVPage> {
         );
 
         await _importExportService.saveWebDAVConfig(config);
-        if (mounted) {
-          SnackBarManager().show(context, 'WebDAV配置保存成功');
-        }
+
+        Fluttertoast.showToast(msg: 'WebDAV配置保存成功');
       } catch (e) {
-        if (mounted) {
-          SnackBarManager().show(context, '保存配置失败：$e');
-        }
+        Fluttertoast.showToast(msg: '保存配置失败：$e');
       } finally {
         setState(() {
           _isLoading = false;
@@ -116,18 +111,12 @@ class _WebDAVPageState extends State<WebDAVPage> {
           config,
         );
         if (isConnected) {
-          if (mounted) {
-            SnackBarManager().show(context, 'WebDAV连接测试成功');
-          }
+          Fluttertoast.showToast(msg: 'WebDAV连接测试成功');
         } else {
-          if (mounted) {
-            SnackBarManager().show(context, 'WebDAV连接测试失败');
-          }
+          Fluttertoast.showToast(msg: 'WebDAV连接测试失败');
         }
       } catch (e) {
-        if (mounted) {
-          SnackBarManager().show(context, '测试连接失败：$e');
-        }
+        Fluttertoast.showToast(msg: '测试连接失败：$e');
       } finally {
         setState(() {
           _isTesting = false;
@@ -140,9 +129,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
   Future<void> _uploadData() async {
     final config = await _importExportService.getWebDAVConfig();
     if (config == null) {
-      if (mounted) {
-        SnackBarManager().show(context, '请先配置WebDAV');
-      }
+      Fluttertoast.showToast(msg: '请先配置WebDAV');
       return;
     }
 
@@ -152,13 +139,9 @@ class _WebDAVPageState extends State<WebDAVPage> {
 
     try {
       await _importExportService.uploadToWebDAV(config);
-      if (mounted) {
-        SnackBarManager().show(context, '数据上传成功');
-      }
+      Fluttertoast.showToast(msg: '数据上传成功');
     } catch (e) {
-      if (mounted) {
-        SnackBarManager().show(context, '上传失败：$e');
-      }
+      Fluttertoast.showToast(msg: '上传失败：$e');
     } finally {
       setState(() {
         _isUploading = false;
@@ -170,9 +153,8 @@ class _WebDAVPageState extends State<WebDAVPage> {
   Future<void> _downloadData() async {
     final config = await _importExportService.getWebDAVConfig();
     if (config == null) {
-      if (mounted) {
-        SnackBarManager().show(context, '请先配置WebDAV');
-      }
+      Fluttertoast.showToast(msg: '请先配置WebDAV');
+
       return;
     }
 
@@ -231,17 +213,13 @@ class _WebDAVPageState extends State<WebDAVPage> {
         config,
         overwrite: _overwriteMode,
       );
-      if (mounted) {
-        final modeText = _overwriteMode ? '覆盖' : '合并';
-        SnackBarManager().show(
-          context,
-          '数据下载成功，已$modeText本地数据，共导入$importedCount条账号信息',
-        );
-      }
+
+      final modeText = _overwriteMode ? '覆盖' : '合并';
+      Fluttertoast.showToast(
+        msg: '数据下载成功，已$modeText本地数据，共导入$importedCount条账号信息',
+      );
     } catch (e) {
-      if (mounted) {
-        SnackBarManager().show(context, '下载失败：$e');
-      }
+      Fluttertoast.showToast(msg: '下载失败：$e');
     } finally {
       setState(() {
         _isDownloading = false;

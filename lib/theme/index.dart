@@ -13,7 +13,7 @@ final appTheme = ThemeData(
     // 显式指定主色（确保核心色为#fee497）
     primary: primaryThemeColor,
     // 次要颜色（确保与主色协调）
-    secondary: Color(0xFF5a272c),
+    secondary: Color(0xFFfbf4de),
     // 主题亮度：浅色模式
     brightness: Brightness.light,
   ),

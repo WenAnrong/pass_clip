@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
-import 'package:pass_clip/utils/snackbar_manager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class PasswordSetupPage extends StatefulWidget {
   const PasswordSetupPage({super.key, this.isFirstTime = true});
@@ -84,7 +84,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
         _confirmPassword = '';
       });
 
-      SnackBarManager().show(context, '两次密码不一致，请重新输入');
+      Fluttertoast.showToast(msg: '两次密码不一致，请重新输入');
     } else {
       // 密码一致，保存密码
       _savePassword();
@@ -100,11 +100,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
     try {
       await _authService.savePassword(_password); // 保存密码到本地存储
       await _authService.saveLoginStatus(true); // 标记“已设置密码”，跳过后续首次启动流程
-
-      // 显示成功提示
-      if (mounted) {
-        SnackBarManager().show(context, '密码设置成功');
-      }
+      Fluttertoast.showToast(msg: '密码设置成功'); // 显示成功提示
 
       // 进入密码提示设置步骤
       setState(() {
@@ -112,10 +108,7 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
         _isLoading = false;
       });
     } catch (e) {
-      // 显示失败提示
-      if (mounted) {
-        SnackBarManager().show(context, '密码设置失败：$e');
-      }
+      Fluttertoast.showToast(msg: '密码设置失败：$e'); // 显示失败提示
 
       setState(() {
         _isLoading = false;
@@ -133,21 +126,14 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
 
     try {
       await _authService.savePasswordHint(_passwordHint); // 保存密码提示到本地存储
-
-      // 显示成功提示
-      if (mounted) {
-        SnackBarManager().show(context, '密码提示设置成功');
-      }
+      Fluttertoast.showToast(msg: '密码提示设置成功'); // 显示成功提示
 
       // 延迟导航到主界面，清除所有之前的界面
       Future.delayed(const Duration(milliseconds: 200), () {
         navigator.pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
       });
     } catch (e) {
-      // 显示失败提示
-      if (mounted) {
-        SnackBarManager().show(context, '密码提示设置失败：$e');
-      }
+      Fluttertoast.showToast(msg: '密码提示设置失败：$e'); // 显示失败提示
 
       setState(() {
         _isLoading = false;

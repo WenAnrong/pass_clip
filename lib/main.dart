@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/routers/index.dart';
 import 'package:pass_clip/theme/index.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
+// 定义全局 NavigatorKey（必须是顶层变量）
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   runApp(const MyApp());
@@ -26,6 +30,10 @@ class _MyAppState extends State<MyApp> {
       darkTheme: darkAppTheme,
       // 主题模式：跟随系统设置
       themeMode: ThemeMode.system,
+      // 添加全局 navigatorKey
+      navigatorKey: appNavigatorKey,
+      // 配置 FToastBuilder（toast 挂载必备）
+      builder: FToastBuilder(),
     );
   }
 }

@@ -3,7 +3,7 @@ import 'package:pass_clip/services/import_export_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:pass_clip/utils/snackbar_manager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -176,9 +176,7 @@ class _ExportPageState extends State<ExportPage> {
         _isExporting = false;
       });
       // 显示失败提示
-      if (mounted) {
-        SnackBarManager().show(context, '导出失败：$e');
-      }
+      Fluttertoast.showToast(msg: '导出失败：$e');
     }
   }
 
@@ -273,9 +271,7 @@ class _ImportPageState extends State<ImportPage> {
       }
     } catch (e) {
       // 显示失败提示
-      if (mounted) {
-        SnackBarManager().show(context, '选择文件失败：$e');
-      }
+      Fluttertoast.showToast(msg: '选择文件失败：$e');
     }
   }
 
@@ -285,7 +281,7 @@ class _ImportPageState extends State<ImportPage> {
 
     if (_fileContent == null) {
       // 显示提示
-      SnackBarManager().show(context, '请先选择文件');
+      Fluttertoast.showToast(msg: '请先选择文件');
 
       return;
     }
@@ -310,17 +306,13 @@ class _ImportPageState extends State<ImportPage> {
       // 导入成功，返回上一页
       navigator.pop();
       // 显示成功提示
-      if (mounted) {
-        SnackBarManager().show(context, '导入成功，共导入$importedCount条账号信息');
-      }
+      Fluttertoast.showToast(msg: '导入成功，共导入$importedCount条账号信息');
     } catch (e) {
       setState(() {
         _isImporting = false;
       });
       // 显示失败提示
-      if (mounted) {
-        SnackBarManager().show(context, '导入失败：$e');
-      }
+      Fluttertoast.showToast(msg: '导入失败：$e');
     }
   }
 
