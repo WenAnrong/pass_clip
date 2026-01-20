@@ -13,7 +13,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final AuthService _authService = AuthService();
   String _password = '';
-  bool _isLoading = false;
   int _failedAttempts = 0;
   DateTime? _lockUntil;
   Timer? _lockTimer;
@@ -127,14 +126,13 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // 验证密码（核心修复：跳转前加mounted检查）
+  // 验证密码
   Future<void> _verifyPassword() async {
     // 提前获取NavigatorState
     final navigator = Navigator.of(context);
 
-    setState(() {
-      _isLoading = true;
-    });
+    // 对于密码验证，不显示加载指示器，避免快速闪烁
+    // 因为密码验证通常是本地操作，速度很快
 
     try {
       final isPasswordCorrect = await _authService.verifyPassword(_password);
@@ -150,66 +148,59 @@ class _LoginPageState extends State<LoginPage> {
         // 保存登录状态
         await _authService.saveLoginStatus(true);
 
-        // 修复关键1：跳转前检查mounted，避免操作已销毁的context
         if (mounted) {
-          // 用提前获取的navigator跳转，而非直接用context
           navigator.pushReplacementNamed('/');
         }
       } else {
-        // 密码错误，增加失败次数
-        if (mounted) {
-          setState(() {
-            _failedAttempts++;
-            _password = '';
-          });
-        }
+        final newFailedAttempts = _failedAttempts + 1;
+        DateTime? newLockUntil;
 
-        // 保存失败尝试次数到持久化存储
-        await _authService.saveFailedAttempts(_failedAttempts);
+        // 先保存失败次数到本地
+        await _authService.saveFailedAttempts(newFailedAttempts);
 
         // 如果失败次数达到5次，锁定账号5分钟
-        if (_failedAttempts >= 5) {
-          final newLockUntil = DateTime.now().add(const Duration(minutes: 5));
-          if (mounted) {
-            setState(() {
-              _lockUntil = newLockUntil;
-            });
-          }
-          // 保存锁定时间到持久化存储
+        if (newFailedAttempts >= 5) {
+          newLockUntil = DateTime.now().add(const Duration(minutes: 5));
           await _authService.saveLockUntil(newLockUntil);
-          // 启动定时器
-          _startLockTimer();
         } else {
           // 未达到锁定条件，清除锁定时间
           await _authService.saveLockUntil(null);
         }
 
-        Fluttertoast.showToast(msg: '密码错误，剩余尝试次数：${5 - _failedAttempts}');
+        // 合并所有状态更新到一个setState中
+        if (mounted) {
+          setState(() {
+            _failedAttempts = newFailedAttempts;
+            _password = '';
+            _lockUntil = newLockUntil;
+          });
+
+          // 如果设置了锁定时间，启动定时器
+          if (newLockUntil != null) {
+            _startLockTimer();
+          }
+
+          // 延迟显示Toast，避开UI刷新的时机
+          Future.delayed(const Duration(milliseconds: 50), () {
+            Fluttertoast.showToast(
+              msg: '密码错误，剩余尝试次数：${5 - newFailedAttempts}',
+              gravity: ToastGravity.BOTTOM, // 固定在底部，避免布局跳动
+            );
+          });
+        }
       }
     } catch (e) {
       Fluttertoast.showToast(msg: '验证失败，请重试');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
   // 显示密码提示
   void _onPasswordHint() {
-    setState(() {
-      _isLoading = true;
-    });
-
     // 获取密码提示
     _authService
         .getPasswordHint()
         .then((hint) {
           if (mounted) {
-            setState(() {
-              _isLoading = false;
-            });
-
             // 显示密码提示对话框
             showDialog(
               context: context,
@@ -233,10 +224,6 @@ class _LoginPageState extends State<LoginPage> {
         })
         .catchError((e) {
           if (mounted) {
-            setState(() {
-              _isLoading = false;
-            });
-
             Fluttertoast.showToast(msg: '获取密码提示失败，请重试');
           }
         });
@@ -260,18 +247,20 @@ class _LoginPageState extends State<LoginPage> {
     ];
 
     return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      mainAxisSpacing: 12.0,
-      crossAxisSpacing: 12.0,
-      padding: const EdgeInsets.all(16.0),
+      key: const ValueKey('numberPad'), // 添加稳定的key
+      crossAxisCount: 3, // 3列
+      shrinkWrap: true, // 自适应高度
+      mainAxisSpacing: 12.0, // 主轴间距（垂直方向）
+      crossAxisSpacing: 12.0, // 交叉轴间距（水平方向）
+      padding: const EdgeInsets.all(40.0), // 内边距（4个方向）
       children: numbers.map((number) {
         if (number.isEmpty) {
-          return const SizedBox();
+          return const SizedBox(key: ValueKey('emptyCell')); // 添加稳定的key
         }
 
         return ElevatedButton(
-          onPressed: (_isLoading || _isAccountLocked())
+          key: ValueKey('numberButton_$number'), // 为每个按钮添加唯一key
+          onPressed: _isAccountLocked()
               ? null
               : () {
                   if (number == '删除') {
@@ -283,9 +272,9 @@ class _LoginPageState extends State<LoginPage> {
           style: ElevatedButton.styleFrom(
             shape: CircleBorder(),
             padding: number == '删除'
-                ? const EdgeInsets.all(10.0)
-                : const EdgeInsets.all(16.0),
-            textStyle: TextStyle(fontSize: number == '删除' ? 16.0 : 20.0),
+                ? const EdgeInsets.all(6.0)
+                : const EdgeInsets.all(10.0),
+            textStyle: TextStyle(fontSize: number == '删除' ? 12.0 : 16.0),
           ),
           child: Text(number),
         );
@@ -297,18 +286,21 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildPasswordDisplay() {
     final maxLength = 4;
     final ThemeData theme = Theme.of(context);
-    final Color primaryColor = theme.colorScheme.primary;
+    final Color primaryColor = theme.colorScheme.primary; // 取主题主色
 
     return Row(
+      key: const ValueKey('passwordDisplay'), // 添加稳定的key，避免不必要的重建
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(maxLength, (index) {
         return Container(
+          key: ValueKey('passwordDot_$index'), // 为每个密码点添加唯一key
           width: 36.0,
           height: 36.0,
           margin: const EdgeInsets.symmetric(horizontal: 12.0),
           decoration: BoxDecoration(
             border: Border.all(color: primaryColor, width: 2.0),
             borderRadius: BorderRadius.circular(8.0),
+            // 输入过的位置填充主色，未输入的透明
             color: index < _password.length ? primaryColor : Colors.transparent,
           ),
         );
@@ -320,53 +312,38 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stack(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 32.0),
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    '秘荚登录',
-                    style: TextStyle(
-                      fontSize: 28.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                if (_isAccountLocked())
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      '密码错误次数过多，${_getRemainingLockTime()}后重试',
-                      style: const TextStyle(color: Colors.red, fontSize: 16.0),
-                    ),
-                  )
-                else
-                  Column(
-                    children: [
-                      _buildPasswordDisplay(),
-                      const SizedBox(height: 24.0),
-                    ],
-                  ),
-                const SizedBox(height: 16.0),
-                if (!_isAccountLocked()) _buildNumberPad(),
-                const Spacer(),
-                TextButton(
-                  onPressed: _onPasswordHint,
-                  child: const Text('密码提示？'),
-                ),
-                const SizedBox(height: 16.0),
-              ],
-            ),
-            if (_isLoading)
-              Container(
-                color: Colors.black.withValues(alpha: 0.5),
-                child: const Center(child: CircularProgressIndicator()),
+            const SizedBox(height: 32.0), // 顶部间距32
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                '秘荚登录',
+                style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
               ),
+            ),
+            const SizedBox(height: 16.0),
+            if (_isAccountLocked())
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  '密码错误次数过多，${_getRemainingLockTime()}后重试',
+                  style: const TextStyle(color: Colors.red, fontSize: 16.0),
+                ),
+              )
+            else
+              Column(
+                children: [
+                  _buildPasswordDisplay(), // 密码显示区域
+                  const SizedBox(height: 16.0), // 密码显示与键盘间距
+                ],
+              ),
+            const SizedBox(height: 10.0), // 键盘与密码提示间距
+            if (!_isAccountLocked()) _buildNumberPad(), // 数字键盘
+            //const Spacer(), // 密码提示按钮与键盘之间的间距
+            TextButton(onPressed: _onPasswordHint, child: const Text('密码提示？')),
+            const SizedBox(height: 16.0), // 密码提示按钮与底部间距
           ],
         ),
       ),

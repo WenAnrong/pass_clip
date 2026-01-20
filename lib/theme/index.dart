@@ -17,7 +17,7 @@ final appTheme = ThemeData(
     // 主题亮度：浅色模式
     brightness: Brightness.light,
   ),
-  // 让AppBar、按钮等组件默认继承主题色
+  // appBar 主题配置
   appBarTheme: AppBarTheme(
     backgroundColor: primaryThemeColor,
     foregroundColor: Colors.black87, // 文字/图标颜色（适配浅主题色）
@@ -35,6 +35,20 @@ final appTheme = ThemeData(
     bodyLarge: TextStyle(
       color: Colors.black87, // 文字颜色（适配浅主题色）
     ),
+  ),
+  // 显示主题配置
+  dialogTheme: DialogThemeData(
+    backgroundColor: Color(0xFFfbf4de),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32.0)),
+  ),
+  // 文本按钮主题配置
+  textButtonTheme: TextButtonThemeData(
+    style: TextButton.styleFrom(foregroundColor: Colors.black87),
+  ),
+  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+    backgroundColor: Color(0xFFfbf4de),
+    selectedItemColor: Colors.black87,
+    unselectedItemColor: Colors.grey,
   ),
 );
 

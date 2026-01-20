@@ -241,6 +241,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('秘荚'),
+        centerTitle: true,
         actions: [
           IconButton(onPressed: _showSortOptions, icon: const Icon(Icons.sort)),
           IconButton(
