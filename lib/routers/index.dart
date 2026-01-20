@@ -20,7 +20,11 @@ class AppRouter {
     '/accountDetail': (context) => const AccountDetailPage(),
     '/categoryManagement': (context) => const CategoryManagementPage(),
     '/login': (context) => const LoginPage(),
-    '/passwordSetup': (context) => const PasswordSetupPage(),
+    '/passwordSetup': (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      return PasswordSetupPage(isFirstTime: args?['isFirstTime'] ?? false);
+    },
     '/webdav': (context) => const WebDAVPage(),
   };
 }
