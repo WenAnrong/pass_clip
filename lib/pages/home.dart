@@ -58,12 +58,6 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadData() async {
     _accounts = await _storageService.getAccounts();
 
-    // 批量更新分类计数
-    final categoryNames = _categories.map((c) => c.name).toList();
-    for (final name in categoryNames) {
-      await _storageService.updateCategoryCount(name);
-    }
-
     _categories = await _storageService.getCategories();
 
     // 重新筛选和排序账号
@@ -207,6 +201,8 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   // 先关闭弹出菜单
                   Navigator.pop(context);
+                  // 主动取消搜索防抖定时器 ↓↓
+                  _searchTimer?.cancel();
                   // 然后跳转到分类管理页面
                   Navigator.pushNamed(context, '/categoryManagement');
                 },

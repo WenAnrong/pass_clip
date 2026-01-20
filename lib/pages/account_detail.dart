@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pass_clip/models/account.dart';
@@ -19,7 +18,6 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
   final StorageService _storageService = StorageService();
   Account? _account;
   bool _showPassword = false;
-  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -36,24 +34,14 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
   void dispose() {
     // 移除刷新通知监听
     RefreshNotifier.instance.removeListener(_onRefresh);
-    // 取消刷新定时器，避免内存泄漏
-    _refreshTimer?.cancel();
     super.dispose();
   }
 
-  // 处理刷新通知（添加防抖机制）
+  // 处理刷新通知
   void _onRefresh() {
-    if (!mounted) return;
-
-    // 取消之前的定时器
-    _refreshTimer?.cancel();
-
-    // 创建新的定时器，延迟500毫秒后执行加载操作
-    _refreshTimer = Timer(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _loadAccount();
-      }
-    });
+    if (mounted) {
+      _loadAccount();
+    }
   }
 
   // 加载账号数据
@@ -90,12 +78,10 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
       final errorMsg = e.toString().contains('未找到') ? '未找到该账号信息' : '未提供账号ID';
       Fluttertoast.showToast(msg: errorMsg);
 
-      // 延迟退出，使用缓存的navigator + mounted检查
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
-          navigator.pop();
-        }
-      });
+      if (mounted) {
+        navigator.pop();
+      }
+
       return;
     }
 

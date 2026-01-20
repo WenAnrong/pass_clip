@@ -14,7 +14,7 @@ class RefreshNotifier extends ChangeNotifier {
   Timer? _debounceTimer;
 
   // 带防抖的刷新通知
-  void notifyRefresh({Duration debounce = const Duration(milliseconds: 120)}) {
+  void notifyRefresh({Duration debounce = const Duration(milliseconds: 300)}) {
     // 取消之前的定时器
     _debounceTimer?.cancel();
     // 延迟发送通知，避免高频触发
