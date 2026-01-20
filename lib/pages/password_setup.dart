@@ -13,313 +13,251 @@ class PasswordSetupPage extends StatefulWidget {
 
 class _PasswordSetupPageState extends State<PasswordSetupPage> {
   final AuthService _authService = AuthService(); // 认证服务
-  String _password = ''; // 密码
-  String _confirmPassword = ''; // 确认密码
-  bool _isSecondStep = false; // 是否是确认密码步骤
-  bool _isSettingHint = false; // 是否是设置密码提示步骤
-  String _passwordHint = ''; // 密码提示
+  final _formKey = GlobalKey<FormState>();
+
+  // 表单控制器
+  final _oldPasswordController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _passwordHintController = TextEditingController();
+
+  bool _hasOldPassword = false; // 是否有旧密码
+  bool _isObscureOld = true; // 是否隐藏旧密码
+  bool _isObscureNew = true; // 是否隐藏新密码
+  bool _isObscureConfirm = true; // 是否隐藏确认密码
   bool _isLoading = false; // 是否正在加载
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfPasswordExists();
+  }
+
+  // 检查是否已设置密码
+  Future<void> _checkIfPasswordExists() async {
+    final isSet = await _authService.isPasswordSet();
+    setState(() {
+      _hasOldPassword = isSet;
+    });
+  }
 
   // 检查密码长度是否为4位
   bool _isPasswordValid(String password) {
     return password.length == 4;
   }
 
-  // 处理数字输入
-  void _onNumberPressed(String number) {
-    if (_isSecondStep) {
-      if (_confirmPassword.length < 4) {
-        setState(() {
-          _confirmPassword += number;
-        });
-
-        // 如果密码长度符合要求，自动进入下一步
-        if (_isPasswordValid(_confirmPassword)) {
-          _verifyPassword();
-        }
-      }
-    } else {
-      if (_password.length < 4) {
-        setState(() {
-          _password += number;
-        });
-
-        // 如果密码长度符合要求，自动进入下一步
-        if (_isPasswordValid(_password)) {
-          setState(() {
-            _isSecondStep = true;
-          });
-        }
-      }
-    }
-  }
-
-  // 删除最后一位密码
-  void _onDeletePressed() {
-    if (_isSecondStep) {
-      if (_confirmPassword.isNotEmpty) {
-        setState(() {
-          _confirmPassword = _confirmPassword.substring(
-            0,
-            _confirmPassword.length - 1,
-          );
-        });
-      }
-    } else {
-      if (_password.isNotEmpty) {
-        setState(() {
-          _password = _password.substring(0, _password.length - 1);
-        });
-      }
-    }
-  }
-
-  // 验证两次密码是否一致
-  void _verifyPassword() {
-    if (_password != _confirmPassword) {
-      // 两次密码不一致
-      setState(() {
-        _isSecondStep = false;
-        _password = '';
-        _confirmPassword = '';
-      });
-
-      Fluttertoast.showToast(msg: '两次密码不一致，请重新输入');
-    } else {
-      // 密码一致，保存密码
-      _savePassword();
-    }
-  }
-
   // 保存密码
   Future<void> _savePassword() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await _authService.savePassword(_password); // 保存密码到本地存储
-      await _authService.saveLoginStatus(true); // 标记“已设置密码”，跳过后续首次启动流程
-      Fluttertoast.showToast(msg: '密码设置成功'); // 显示成功提示
-
-      // 进入密码提示设置步骤
+    if (_formKey.currentState!.validate()) {
       setState(() {
-        _isSettingHint = true;
-        _isLoading = false;
+        _isLoading = true;
       });
-    } catch (e) {
-      Fluttertoast.showToast(msg: '密码设置失败：$e'); // 显示失败提示
 
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  // 保存密码提示
-  Future<void> _savePasswordHint() async {
-    final navigator = Navigator.of(context);
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await _authService.savePasswordHint(_passwordHint); // 保存密码提示到本地存储
-      Fluttertoast.showToast(msg: '密码提示设置成功'); // 显示成功提示
-
-      // 延迟导航到主界面，清除所有之前的界面
-      Future.delayed(const Duration(milliseconds: 200), () {
-        navigator.pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
-      });
-    } catch (e) {
-      Fluttertoast.showToast(msg: '密码提示设置失败：$e'); // 显示失败提示
-
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  // 处理密码提示输入变化
-  void _onHintChanged(String value) {
-    setState(() {
-      _passwordHint = value;
-    });
-  }
-
-  // 构建数字键盘
-  Widget _buildNumberPad() {
-    final numbers = [
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '',
-      '0',
-      '删除',
-    ];
-
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      mainAxisSpacing: 12.0,
-      crossAxisSpacing: 12.0,
-      padding: const EdgeInsets.all(16.0),
-      children: numbers.map((number) {
-        if (number.isEmpty) {
-          return const SizedBox();
+      try {
+        // 如果有旧密码，先验证
+        if (_hasOldPassword) {
+          final isCorrect = await _authService.verifyPassword(
+            _oldPasswordController.text,
+          );
+          if (!isCorrect) {
+            setState(() {
+              _isLoading = false;
+            });
+            Fluttertoast.showToast(msg: '旧密码错误，请重新输入');
+            return;
+          }
         }
 
-        return ElevatedButton(
-          onPressed: _isLoading
-              ? null
-              : () {
-                  if (number == '删除') {
-                    _onDeletePressed();
-                  } else {
-                    _onNumberPressed(number);
-                  }
-                },
-          style: ElevatedButton.styleFrom(
-            shape: CircleBorder(),
-            padding: number == '删除'
-                ? const EdgeInsets.all(10.0)
-                : const EdgeInsets.all(16.0),
-            textStyle: TextStyle(fontSize: number == '删除' ? 16.0 : 20.0),
-          ),
-          child: Text(number),
-        );
-      }).toList(),
-    );
-  }
+        // 保存新密码
+        await _authService.savePassword(_passwordController.text);
+        await _authService.saveLoginStatus(true);
 
-  // 构建密码显示区域
-  Widget _buildPasswordDisplay() {
-    final password = _isSecondStep ? _confirmPassword : _password;
-    final maxLength = 4;
-    final ThemeData theme = Theme.of(context);
-    final Color primaryColor = theme.colorScheme.primary;
+        // 保存密码提示
+        if (_passwordHintController.text.isNotEmpty) {
+          await _authService.savePasswordHint(_passwordHintController.text);
+        }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(maxLength, (index) {
-        return Container(
-          width: 36.0,
-          height: 36.0,
-          margin: const EdgeInsets.symmetric(horizontal: 12.0),
-          decoration: BoxDecoration(
-            border: Border.all(color: primaryColor, width: 2.0),
-            borderRadius: BorderRadius.circular(8.0),
-            color: index < password.length ? primaryColor : Colors.transparent,
-          ),
-        );
-      }),
-    );
-  }
+        Fluttertoast.showToast(msg: '密码设置成功');
 
-  // 构建密码提示设置界面
-  Widget _buildPasswordHintSetup() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            '请设置密码提示，帮助你回忆密码（可选）',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18.0),
-          ),
-        ),
-        const SizedBox(height: 32.0),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 48.0),
-          child: TextField(
-            onChanged: _onHintChanged,
-            decoration: InputDecoration(
-              hintText: '输入密码提示',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              contentPadding: const EdgeInsets.all(16.0),
-            ),
-            maxLength: 50,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20.0),
-            onSubmitted: (value) {
-              _savePasswordHint();
-            },
-          ),
-        ),
-        const SizedBox(height: 64.0),
-        ElevatedButton(
-          onPressed: _isLoading ? null : _savePasswordHint,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 64.0,
-              vertical: 16.0,
-            ),
-            textStyle: const TextStyle(fontSize: 18.0),
-          ),
-          child: const Text('完成'),
-        ),
-      ],
-    );
+        // 导航到主界面
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted) {
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+          }
+        });
+      } catch (e) {
+        Fluttertoast.showToast(msg: '密码设置失败：$e');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _isSettingHint
-              ? '设置密码提示'
-              : widget.isFirstTime
-              ? '设置解锁密码'
-              : '修改解锁密码',
-        ),
-        leading: _isSettingHint
-            ? null // 密码提示设置步骤不允许返回
-            : _isSecondStep
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  setState(() {
-                    _isSecondStep = false;
-                    _confirmPassword = '';
-                  });
-                },
-              )
-            : null,
-      ),
+      appBar: AppBar(title: Text(widget.isFirstTime ? '设置解锁密码' : '修改解锁密码')),
       body: SafeArea(
         child: Stack(
           children: [
-            if (_isSettingHint)
-              _buildPasswordHintSetup() // 显示密码提示设置界面
-            else
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      _isSecondStep ? '请再次输入密码确认' : '请设置4位纯数字解锁密码，保护你的账号安全',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16.0),
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 旧密码（如果有）
+                    if (_hasOldPassword)
+                      Column(
+                        children: [
+                          TextFormField(
+                            controller: _oldPasswordController,
+                            decoration: InputDecoration(
+                              labelText: '旧密码',
+                              hintText: '请输入旧的4位数字密码',
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isObscureOld
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isObscureOld = !_isObscureOld;
+                                  });
+                                },
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            maxLength: 4,
+                            obscureText: _isObscureOld,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return '请输入旧密码';
+                              }
+                              if (!_isPasswordValid(value)) {
+                                return '请输入4位数字密码';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                        ],
+                      ),
+
+                    // 新密码
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: '新密码',
+                        hintText: '请输入新的4位数字密码',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isObscureNew
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isObscureNew = !_isObscureNew;
+                            });
+                          },
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      obscureText: _isObscureNew,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return '请输入新密码';
+                        }
+                        if (!_isPasswordValid(value)) {
+                          return '请输入4位数字密码';
+                        }
+                        return null;
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 24.0),
-                  _buildPasswordDisplay(),
-                  const SizedBox(height: 32.0),
-                  _buildNumberPad(),
-                ],
+                    const SizedBox(height: 16.0),
+
+                    // 确认密码
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      decoration: InputDecoration(
+                        labelText: '确认密码',
+                        hintText: '请再次输入新密码',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isObscureConfirm
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isObscureConfirm = !_isObscureConfirm;
+                            });
+                          },
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      obscureText: _isObscureConfirm,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return '请确认新密码';
+                        }
+                        if (!_isPasswordValid(value)) {
+                          return '请输入4位数字密码';
+                        }
+                        if (value != _passwordController.text) {
+                          return '两次输入的密码不一致';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24.0),
+
+                    // 密码提示
+                    TextFormField(
+                      controller: _passwordHintController,
+                      decoration: const InputDecoration(
+                        labelText: '密码提示（可选）',
+                        hintText: '请输入密码提示，帮助你回忆密码',
+                      ),
+                      maxLength: 50,
+                    ),
+                    const SizedBox(height: 32.0),
+
+                    // 保存按钮
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _savePassword,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          textStyle: const TextStyle(fontSize: 18.0),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20.0,
+                                height: 20.0,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.0,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('保存'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
+            // 加载指示器
             if (_isLoading)
               Container(
                 color: Colors.black.withValues(alpha: 0.5),
