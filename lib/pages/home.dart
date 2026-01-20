@@ -197,6 +197,7 @@ class _HomePageState extends State<HomePage> {
 
   // 显示删除确认
   void _showDeleteConfirm(Account account) {
+    final stateContext = context;
     showDialog(
       context: context,
       builder: (context) {
@@ -223,7 +224,9 @@ class _HomePageState extends State<HomePage> {
 
                 // 用缓存的对象执行操作
                 navigator.pop();
-                SnackBarManager().show(context, '删除成功');
+                if (stateContext.mounted) {
+                  SnackBarManager().show(stateContext, '删除成功');
+                }
               },
               child: const Text('删除'),
             ),

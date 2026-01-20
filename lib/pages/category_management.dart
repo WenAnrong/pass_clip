@@ -129,6 +129,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
 
   // 删除分类
   void _showDeleteConfirm(String categoryName) {
+    final stateContext = context;
     final navigator = Navigator.of(context);
 
     if (categoryName == '未分类') {
@@ -157,7 +158,9 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
                 await _loadCategories();
                 navigator.pop();
                 if (mounted) {
-                  SnackBarManager().show(context, '分类删除成功');
+                  if (stateContext.mounted) {
+                    SnackBarManager().show(stateContext, '分类删除成功');
+                  }
                 }
               },
               child: const Text('删除'),
