@@ -58,14 +58,28 @@ class ImportExportService {
   // 测试WebDAV连接
   Future<bool> testWebDAVConnection(WebDAVConfig config) async {
     try {
-      final response = await http.get(
-        Uri.parse(config.url),
-        headers: {
-          'Authorization':
-              'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
-        },
+      final client = http.Client();
+      final request = http.Request('PROPFIND', Uri.parse(config.url));
+      request.headers.addAll({
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
+        'Depth': '0',
+      });
+      final response = await client.send(request);
+      final responseBody = await response.stream.bytesToString();
+      client.close();
+      // 将StreamedResponse转换为普通Response以便后续处理
+      final http.Response fullResponse = http.Response(
+        responseBody,
+        response.statusCode,
+        headers: response.headers,
+        reasonPhrase: response.reasonPhrase,
       );
-      return response.statusCode == 200;
+
+      // 坚果云可能返回207 Multi-Status或其他WebDAV特定状态码，所以我们接受200-399之间的状态码
+      final success =
+          fullResponse.statusCode >= 200 && fullResponse.statusCode < 400;
+      return success;
     } catch (e) {
       return false;
     }
@@ -80,21 +94,27 @@ class ImportExportService {
       // 生成文件名
       final fileName = generateExportFileName('json');
 
+      // 构建上传URL - 确保URL格式正确
+      final baseUrl = config.url.endsWith('/') ? config.url : '${config.url}/';
+      final uploadUrl = Uri.parse('$baseUrl$fileName');
+
       // 上传到WebDAV服务器
       final response = await http.put(
-        Uri.parse(
-          '${config.url.endsWith('/') ? config.url : '${config.url}/'}$fileName',
-        ),
+        uploadUrl,
         headers: {
           'Content-Type': 'application/json',
           'Authorization':
               'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
+          'Depth': '0',
         },
         body: jsonData,
       );
 
-      if (response.statusCode != 201 && response.statusCode != 204) {
-        throw Exception('上传失败：${response.statusCode} ${response.reasonPhrase}');
+      // 坚果云可能返回不同的状态码，我们接受200-299之间的状态码
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception(
+          '上传失败：${response.statusCode} ${response.reasonPhrase}\nURL: $uploadUrl',
+        );
       }
     } catch (e) {
       throw Exception('WebDAV上传失败：$e');
@@ -107,23 +127,31 @@ class ImportExportService {
       // 生成文件名
       final fileName = generateExportFileName('json');
 
+      // 构建下载URL - 确保URL格式正确
+      final baseUrl = config.url.endsWith('/') ? config.url : '${config.url}/';
+      final downloadUrl = Uri.parse('$baseUrl$fileName');
+
       // 从WebDAV服务器下载
       final response = await http.get(
-        Uri.parse(
-          '${config.url.endsWith('/') ? config.url : '${config.url}/'}$fileName',
-        ),
+        downloadUrl,
         headers: {
           'Authorization':
               'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
+          'Depth': '0',
         },
       );
 
       if (response.statusCode != 200) {
-        throw Exception('下载失败：${response.statusCode} ${response.reasonPhrase}');
+        throw Exception(
+          '下载失败：${response.statusCode} ${response.reasonPhrase}\nURL: $downloadUrl',
+        );
       }
 
+      // 确保正确解码为UTF-8，解决乱码问题
+      final jsonData = utf8.decode(response.bodyBytes);
+
       // 导入数据
-      return await importFromJson(response.body);
+      return await importFromJson(jsonData);
     } catch (e) {
       throw Exception('WebDAV下载失败：$e');
     }
