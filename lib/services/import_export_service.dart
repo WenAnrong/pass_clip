@@ -94,26 +94,62 @@ class ImportExportService {
       // 生成文件名
       final fileName = generateExportFileName('json');
 
-      // 构建上传URL - 确保URL格式正确
+      // 构建基础URL - 确保URL格式正确
       final baseUrl = config.url.endsWith('/') ? config.url : '${config.url}/';
       final uploadUrl = Uri.parse('$baseUrl$fileName');
 
-      // 上传到WebDAV服务器
-      final response = await http.put(
-        uploadUrl,
-        headers: {
-          'Content-Type': 'application/json',
+      // 1. 获取WebDAV目录中的所有文件
+      final client = http.Client();
+      final propfindRequest = http.Request('PROPFIND', Uri.parse(baseUrl));
+      propfindRequest.headers.addAll({
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
+        'Depth': '1',
+      });
+      final propfindResponse = await client.send(propfindRequest);
+      final propfindResponseBody = await propfindResponse.stream
+          .bytesToString();
+
+      // 2. 解析XML响应，找出所有旧的导出文件
+      final RegExp filePattern = RegExp(
+        r'<d:displayname>(pass_clip_export_.*json)</d:displayname>',
+        dotAll: true,
+      );
+      final matches = filePattern.allMatches(propfindResponseBody);
+      final oldFiles = matches
+          .map((match) => match.group(1))
+          .whereType<String>()
+          .toList();
+
+      // 3. 删除所有旧文件
+      for (final oldFile in oldFiles) {
+        final deleteUrl = Uri.parse('$baseUrl$oldFile');
+        final deleteRequest = http.Request('DELETE', deleteUrl);
+        deleteRequest.headers.addAll({
           'Authorization':
               'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
-          'Depth': '0',
-        },
-        body: jsonData,
-      );
+        });
+        final deleteResponse = await client.send(deleteRequest);
+        // 删除操作通常返回204 No Content或200 OK，表示成功
+        // 忽略删除失败的情况，继续执行上传
+      }
+
+      // 4. 上传新文件
+      final putRequest = http.Request('PUT', uploadUrl);
+      putRequest.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
+      });
+      putRequest.body = jsonData;
+      final putResponse = await client.send(putRequest);
+      final putResponseBody = await putResponse.stream.bytesToString();
+      client.close();
 
       // 坚果云可能返回不同的状态码，我们接受200-299之间的状态码
-      if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (putResponse.statusCode < 200 || putResponse.statusCode >= 300) {
         throw Exception(
-          '上传失败：${response.statusCode} ${response.reasonPhrase}\nURL: $uploadUrl',
+          '上传失败：${putResponse.statusCode} ${putResponse.reasonPhrase}\nURL: $uploadUrl',
         );
       }
     } catch (e) {
@@ -122,7 +158,10 @@ class ImportExportService {
   }
 
   // 从WebDAV下载JSON文件
-  Future<int> downloadFromWebDAV(WebDAVConfig config) async {
+  Future<int> downloadFromWebDAV(
+    WebDAVConfig config, {
+    bool overwrite = false,
+  }) async {
     try {
       // 生成文件名
       final fileName = generateExportFileName('json');
@@ -151,7 +190,7 @@ class ImportExportService {
       final jsonData = utf8.decode(response.bodyBytes);
 
       // 导入数据
-      return await importFromJson(jsonData);
+      return await importFromJson(jsonData, overwrite: overwrite);
     } catch (e) {
       throw Exception('WebDAV下载失败：$e');
     }
@@ -199,9 +238,17 @@ class ImportExportService {
   }
 
   // 从JSON格式导入
-  Future<int> importFromJson(String jsonData) async {
+  Future<int> importFromJson(String jsonData, {bool overwrite = false}) async {
     try {
       final importData = json.decode(jsonData) as Map<String, dynamic>;
+
+      // 如果是覆盖模式，先清空现有数据
+      if (overwrite) {
+        // 清空账号数据
+        await _storageService.saveAccounts([]);
+        // 清空分类数据，但保留默认分类
+        await _storageService.saveCategories([]);
+      }
 
       // Import categories
       if (importData.containsKey('categories')) {
@@ -213,16 +260,17 @@ class ImportExportService {
       }
 
       // Import accounts
+      int importedCount = 0;
       if (importData.containsKey('accounts')) {
         final accountsList = importData['accounts'] as List;
         for (var accountData in accountsList) {
           final account = Account.fromMap(accountData);
           await _storageService.saveAccount(account);
+          importedCount++;
         }
-        return accountsList.length;
       }
 
-      return 0;
+      return importedCount;
     } catch (e) {
       throw Exception('JSON格式错误：$e');
     }
