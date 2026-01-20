@@ -124,8 +124,8 @@ class _HomePageState extends State<HomePage> {
     // 取消之前的计时器
     _searchTimer?.cancel();
 
-    // 设置新的计时器，延迟500毫秒后更新筛选结果
-    _searchTimer = Timer(const Duration(milliseconds: 500), () {
+    // 延迟50毫秒后更新筛选结果
+    _searchTimer = Timer(const Duration(milliseconds: 50), () {
       if (mounted) {
         _updateFilteredAndSortedAccounts();
       }
@@ -205,6 +205,9 @@ class _HomePageState extends State<HomePage> {
               ListTile(
                 title: const Text('分类管理'),
                 onTap: () {
+                  // 先关闭弹出菜单
+                  Navigator.pop(context);
+                  // 然后跳转到分类管理页面
                   Navigator.pushNamed(context, '/categoryManagement');
                 },
               ),

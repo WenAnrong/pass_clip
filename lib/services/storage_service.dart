@@ -49,6 +49,12 @@ class StorageService {
     await saveAccounts(accounts);
   }
 
+  // 根据ID获取单个账号
+  Future<Account?> getAccountById(String id) async {
+    final accounts = await getAccounts();
+    return accounts.where((account) => account.id == id).firstOrNull;
+  }
+
   // 分类相关操作
 
   // 保存分类列表
