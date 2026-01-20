@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:pass_clip/utils/snackbar_manager.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -155,10 +156,10 @@ class _ExportPageState extends State<ExportPage> {
       await file.writeAsString(exportData);
 
       navigator.pop();
-      // 显示成功提示
-      if (mounted) {
-        SnackBarManager().show(context, '导出成功：$path');
-      }
+
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(path)], text: '分享导出的账号数据'),
+      );
     } catch (e) {
       setState(() {
         _isExporting = false;
