@@ -6,16 +6,16 @@ import 'dart:math';
 import 'package:pass_clip/utils/refresh_notifier.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-class AddAccountPage extends StatefulWidget {
-  final Account? account; // 编辑模式时传入的已有账号，新增时为null
+class AccountManagementPage extends StatefulWidget {
+  final Account? account;
 
-  const AddAccountPage({super.key, this.account});
+  const AccountManagementPage({super.key, this.account});
 
   @override
-  State<AddAccountPage> createState() => _AddAccountPageState();
+  State<AccountManagementPage> createState() => _AccountManagementPageState();
 }
 
-class _AddAccountPageState extends State<AddAccountPage> {
+class _AccountManagementPageState extends State<AccountManagementPage> {
   final StorageService _storageService = StorageService();
   List<Category> _categories = [];
   bool _isObscure = true;
@@ -41,9 +41,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
   @override
   void initState() {
     super.initState();
-    _loadCategories(); // 加载分类列表（初始化下拉选择框的选项）
+    _loadCategories();
 
-    // 如果是编辑模式，加载现有数据
     if (widget.account != null) {
       _platformController.text = widget.account!.platform;
       _usernameController.text = widget.account!.username;
@@ -52,31 +51,22 @@ class _AddAccountPageState extends State<AddAccountPage> {
       _remarkController.text = widget.account!.remark ?? '';
       _urlController.text = widget.account!.url ?? '';
 
-      // 加载自定义字段
       _customFields = widget.account!.customFields.entries
           .map((entry) => {'name': entry.key, 'value': entry.value})
           .toList();
     }
   }
 
-  // 加载分类数据
   Future<void> _loadCategories() async {
     _categories = await _storageService.getCategories();
-
-    // 添加"添加新分类"选项
     _categories.add(Category(name: '添加新分类', count: 0));
-
-    setState(() {
-      // 分类加载完成，更新UI
-    });
+    setState(() {});
   }
 
-  // 生成随机密码
   void _generatePassword() {
     const chars =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%^&*()';
     final random = Random();
-    // 生成12位随机密码：遍历12次，每次从字符集随机取一个字符
     final password = String.fromCharCodes(
       Iterable.generate(
         12,
@@ -86,7 +76,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
     _passwordController.text = password;
   }
 
-  // 添加自定义字段
   void _addCustomField() {
     if (_customFieldNameController.text.isNotEmpty) {
       setState(() {
@@ -94,36 +83,30 @@ class _AddAccountPageState extends State<AddAccountPage> {
           'name': _customFieldNameController.text,
           'value': _customFieldValueController.text,
         });
-        // 清空输入框
         _customFieldNameController.clear();
         _customFieldValueController.clear();
       });
     }
   }
 
-  // 删除自定义字段
   void _removeCustomField(int index) {
     setState(() {
       _customFields.removeAt(index);
     });
   }
 
-  // 处理分类选择
   void _onCategoryChanged(String? value) {
     if (value == null) return;
 
     if (value == '添加新分类') {
-      // 显示添加新分类的对话框
       _showAddCategoryDialog();
     } else {
-      // 正常选择分类
       setState(() {
         _selectedCategory = value;
       });
     }
   }
 
-  // 显示添加新分类的对话框
   Future<void> _showAddCategoryDialog() async {
     final TextEditingController categoryNameController =
         TextEditingController();
@@ -156,7 +139,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 return;
               }
 
-              // 检查分类是否已存在
               final categoryExists = _categories.any(
                 (category) => category.name == newCategoryName,
               );
@@ -166,13 +148,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
                 return;
               }
 
-              // 在异步操作之前获取NavigatorState
               final navigator = Navigator.of(dialogContext);
-
-              // 保存新分类
               await _saveNewCategory(newCategoryName);
-
-              // 使用之前获取的NavigatorState关闭对话框
               navigator.pop();
             },
             child: const Text('确认'),
@@ -182,52 +159,35 @@ class _AddAccountPageState extends State<AddAccountPage> {
     );
   }
 
-  // 保存新分类
   Future<void> _saveNewCategory(String newCategoryName) async {
     try {
-      // 创建新分类对象
       final newCategory = Category(name: newCategoryName, count: 0);
-
-      // 保存新分类到存储中
       await _storageService.saveCategory(newCategory);
 
-      // 更新分类列表
       setState(() {
-        // 移除原来的"添加新分类"选项
         _categories.removeLast();
-
-        // 添加新分类
         _categories.add(newCategory);
-
-        // 重新添加"添加新分类"选项
         _categories.add(Category(name: '添加新分类', count: 0));
-
-        // 选择新添加的分类
         _selectedCategory = newCategoryName;
       });
 
       Fluttertoast.showToast(msg: '分类添加成功');
-      RefreshNotifier.instance.notifyRefresh(); // 通知主页刷新分类
+      RefreshNotifier.instance.notifyRefresh();
     } catch (e) {
       Fluttertoast.showToast(msg: '分类添加失败：$e');
     }
   }
 
-  // 保存账号
   Future<void> _saveAccount() async {
-    // 先检查页面是否存活，避免无效操作
     if (!mounted) return;
     final navigator = Navigator.of(context);
 
-    // 验证表单所有字段是否填写完整
     if (_formKey.currentState!.validate()) {
-      // 转换自定义字段为Map
       Map<String, String> customFieldsMap = {};
       for (var field in _customFields) {
         customFieldsMap[field['name']!] = field['value']!;
       }
 
-      // 构建账号对象
       final account = Account(
         id:
             widget.account?.id ??
@@ -248,7 +208,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
       await _storageService.saveAccount(account);
       await _storageService.updateCategoryCount(_selectedCategory);
 
-      // 保存成功后，发送刷新通知
       navigator.pop();
       RefreshNotifier.instance.notifyRefresh();
       Fluttertoast.showToast(msg: widget.account != null ? '更新成功' : '保存成功');
@@ -267,7 +226,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 平台名称
                 TextFormField(
                   controller: _platformController,
                   decoration: InputDecoration(
@@ -282,7 +240,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
-                // 账号
                 TextFormField(
                   controller: _usernameController,
                   decoration: InputDecoration(
@@ -297,7 +254,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
-                // 密码
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _isObscure,
@@ -346,7 +302,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   ),
                 ),
                 const SizedBox(height: 16.0),
-                // 分类
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(labelText: '分类'),
                   initialValue: _selectedCategory,
@@ -361,7 +316,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   onChanged: _onCategoryChanged,
                 ),
                 const SizedBox(height: 16.0),
-                // 备注
                 TextFormField(
                   controller: _remarkController,
                   decoration: InputDecoration(
@@ -371,7 +325,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   ),
                 ),
                 const SizedBox(height: 16.0),
-                // 网址
                 TextFormField(
                   controller: _urlController,
                   decoration: InputDecoration(
@@ -380,7 +333,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   ),
                 ),
                 const SizedBox(height: 24.0),
-                // 自定义字段
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -392,7 +344,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                       ),
                     ),
                     const SizedBox(height: 12.0),
-                    // 已添加的自定义字段列表
                     if (_customFields.isNotEmpty)
                       Column(
                         children: List.generate(
@@ -436,7 +387,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                         ),
                       ),
                     const SizedBox(height: 12.0),
-                    // 添加自定义字段的输入框
                     Row(
                       children: [
                         Expanded(
@@ -473,7 +423,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   ],
                 ),
                 const SizedBox(height: 32.0),
-                // 保存按钮
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

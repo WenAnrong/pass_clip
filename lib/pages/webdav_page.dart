@@ -15,7 +15,6 @@ class _WebDAVPageState extends State<WebDAVPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final ImportExportService _importExportService = ImportExportService();
-  bool _isLoading = false;
   bool _isTesting = false;
   bool _isUploading = false;
   bool _isDownloading = false;
@@ -38,10 +37,6 @@ class _WebDAVPageState extends State<WebDAVPage> {
 
   // 加载已保存的WebDAV配置
   Future<void> _loadConfig() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
       final config = await _importExportService.getWebDAVConfig();
       if (config != null) {
@@ -51,10 +46,6 @@ class _WebDAVPageState extends State<WebDAVPage> {
       }
     } catch (e) {
       Fluttertoast.showToast(msg: '加载配置失败：$e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -64,10 +55,6 @@ class _WebDAVPageState extends State<WebDAVPage> {
       final url = _urlController.text;
       final username = _usernameController.text;
       final password = _passwordController.text;
-
-      setState(() {
-        _isLoading = true;
-      });
 
       try {
         final config = WebDAVConfig(
@@ -81,10 +68,6 @@ class _WebDAVPageState extends State<WebDAVPage> {
         Fluttertoast.showToast(msg: 'WebDAV配置保存成功');
       } catch (e) {
         Fluttertoast.showToast(msg: '保存配置失败：$e');
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
@@ -232,151 +215,147 @@ class _WebDAVPageState extends State<WebDAVPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('WebDAV配置')),
       body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16.0),
-                        const Text(
-                          'WebDAV服务器配置',
-                          style: TextStyle(
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 24.0),
-                        TextFormField(
-                          controller: _urlController,
-                          decoration: const InputDecoration(
-                            labelText: '服务器地址',
-                            hintText: '例如: https://example.com/webdav/',
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '请输入服务器地址';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16.0),
-                        TextFormField(
-                          controller: _usernameController,
-                          decoration: const InputDecoration(
-                            labelText: '用户名',
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '请输入用户名';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16.0),
-                        TextFormField(
-                          controller: _passwordController,
-                          decoration: const InputDecoration(
-                            labelText: '密码',
-                            border: OutlineInputBorder(),
-                          ),
-                          obscureText: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return '请输入密码';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24.0),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: _saveConfig,
-                                child: const Text('保存配置'),
-                              ),
-                            ),
-                            const SizedBox(width: 16.0),
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: _isTesting ? null : _testConnection,
-                                child: _isTesting
-                                    ? const SizedBox(
-                                        width: 20.0,
-                                        height: 20.0,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.0,
-                                        ),
-                                      )
-                                    : const Text('测试连接'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 32.0),
-                        const Divider(),
-                        const SizedBox(height: 16.0),
-                        const Text(
-                          '数据同步',
-                          style: TextStyle(
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 24.0),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _isUploading ? null : _uploadData,
-                                icon: _isUploading
-                                    ? const SizedBox(
-                                        width: 20.0,
-                                        height: 20.0,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.0,
-                                        ),
-                                      )
-                                    : const Icon(Icons.upload),
-                                label: const Text('上传到WebDAV'),
-                              ),
-                            ),
-                            const SizedBox(width: 16.0),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _isDownloading
-                                    ? null
-                                    : _downloadData,
-                                icon: _isDownloading
-                                    ? const SizedBox(
-                                        width: 20.0,
-                                        height: 20.0,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.0,
-                                        ),
-                                      )
-                                    : const Icon(Icons.download),
-                                label: const Text('从WebDAV下载'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16.0),
-                        const Text('上传说明：将当前所有账号数据以JSON格式上传到WebDAV服务器。'),
-                      ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16.0),
+                  const Text(
+                    'WebDAV服务器配置',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24.0),
+                  TextFormField(
+                    controller: _urlController,
+                    decoration: const InputDecoration(
+                      labelText: '服务器地址',
+                      hintText: '例如: https://example.com/webdav/',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '请输入服务器地址';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: '用户名',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '请输入用户名';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(
+                      labelText: '密码',
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '请输入密码';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _saveConfig,
+                          child: const Text('保存配置'),
+                        ),
+                      ),
+                      const SizedBox(width: 16.0),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isTesting ? null : _testConnection,
+                          child: _isTesting
+                              ? const SizedBox(
+                                  width: 20.0,
+                                  height: 20.0,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  ),
+                                )
+                              : const Text('测试连接'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32.0),
+                  const Divider(),
+                  const SizedBox(height: 16.0),
+                  const Text(
+                    '数据同步',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isUploading ? null : _uploadData,
+                          icon: _isUploading
+                              ? const SizedBox(
+                                  width: 20.0,
+                                  height: 20.0,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  ),
+                                )
+                              : const Icon(Icons.upload),
+                          label: const Text('上传到WebDAV'),
+                        ),
+                      ),
+                      const SizedBox(width: 16.0),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isDownloading ? null : _downloadData,
+                          icon: _isDownloading
+                              ? const SizedBox(
+                                  width: 20.0,
+                                  height: 20.0,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  ),
+                                )
+                              : const Icon(Icons.download),
+                          label: const Text('从WebDAV下载'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  const Text('上传说明：将当前所有账号数据以JSON格式上传到WebDAV服务器。'),
+                ],
               ),
+            ),
+          ),
+        ),
       ),
     );
   }
