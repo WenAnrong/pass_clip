@@ -45,10 +45,17 @@ final appTheme = ThemeData(
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(foregroundColor: Colors.black87),
   ),
+  // 底部导航栏主题配置
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
     backgroundColor: Color(0xFFfbf4de),
     selectedItemColor: Colors.black87,
     unselectedItemColor: Colors.grey,
+  ),
+  // 文本输入框主题配置
+  inputDecorationTheme: InputDecorationTheme(
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.0)),
+    labelStyle: TextStyle(color: Colors.black87),
+    hintStyle: TextStyle(color: Colors.grey),
   ),
 );
 

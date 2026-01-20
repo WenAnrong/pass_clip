@@ -18,7 +18,6 @@ class AddAccountPage extends StatefulWidget {
 class _AddAccountPageState extends State<AddAccountPage> {
   final StorageService _storageService = StorageService();
   List<Category> _categories = [];
-  bool _isLoading = true;
   bool _isObscure = true;
 
   // 表单控制器
@@ -63,8 +62,12 @@ class _AddAccountPageState extends State<AddAccountPage> {
   // 加载分类数据
   Future<void> _loadCategories() async {
     _categories = await _storageService.getCategories();
+
+    // 添加"添加新分类"选项
+    _categories.add(Category(name: '添加新分类', count: 0));
+
     setState(() {
-      _isLoading = false;
+      // 分类加载完成，更新UI
     });
   }
 
@@ -105,6 +108,111 @@ class _AddAccountPageState extends State<AddAccountPage> {
     });
   }
 
+  // 处理分类选择
+  void _onCategoryChanged(String? value) {
+    if (value == null) return;
+
+    if (value == '添加新分类') {
+      // 显示添加新分类的对话框
+      _showAddCategoryDialog();
+    } else {
+      // 正常选择分类
+      setState(() {
+        _selectedCategory = value;
+      });
+    }
+  }
+
+  // 显示添加新分类的对话框
+  Future<void> _showAddCategoryDialog() async {
+    final TextEditingController categoryNameController =
+        TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('添加新分类'),
+        content: TextField(
+          controller: categoryNameController,
+          decoration: const InputDecoration(
+            labelText: '分类名称',
+            hintText: '请输入新分类名称',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newCategoryName = categoryNameController.text.trim();
+
+              if (newCategoryName.isEmpty) {
+                Fluttertoast.showToast(msg: '分类名称不能为空');
+                return;
+              }
+
+              // 检查分类是否已存在
+              final categoryExists = _categories.any(
+                (category) => category.name == newCategoryName,
+              );
+
+              if (categoryExists) {
+                Fluttertoast.showToast(msg: '分类已存在');
+                return;
+              }
+
+              // 在异步操作之前获取NavigatorState
+              final navigator = Navigator.of(dialogContext);
+
+              // 保存新分类
+              await _saveNewCategory(newCategoryName);
+
+              // 使用之前获取的NavigatorState关闭对话框
+              navigator.pop();
+            },
+            child: const Text('确认'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 保存新分类
+  Future<void> _saveNewCategory(String newCategoryName) async {
+    try {
+      // 创建新分类对象
+      final newCategory = Category(name: newCategoryName, count: 0);
+
+      // 保存新分类到存储中
+      await _storageService.saveCategory(newCategory);
+
+      // 更新分类列表
+      setState(() {
+        // 移除原来的"添加新分类"选项
+        _categories.removeLast();
+
+        // 添加新分类
+        _categories.add(newCategory);
+
+        // 重新添加"添加新分类"选项
+        _categories.add(Category(name: '添加新分类', count: 0));
+
+        // 选择新添加的分类
+        _selectedCategory = newCategoryName;
+      });
+
+      Fluttertoast.showToast(msg: '分类添加成功');
+      RefreshNotifier.instance.notifyRefresh(); // 通知主页刷新分类
+    } catch (e) {
+      Fluttertoast.showToast(msg: '分类添加失败：$e');
+    }
+  }
+
   // 保存账号
   Future<void> _saveAccount() async {
     // 先检查页面是否存活，避免无效操作
@@ -113,10 +221,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
     // 验证表单所有字段是否填写完整
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
       // 转换自定义字段为Map
       Map<String, String> customFieldsMap = {};
       for (var field in _customFields) {
@@ -144,10 +248,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
       await _storageService.saveAccount(account);
       await _storageService.updateCategoryCount(_selectedCategory);
 
-      setState(() {
-        _isLoading = false;
-      });
-
       // 保存成功后，发送刷新通知
       navigator.pop();
       RefreshNotifier.instance.notifyRefresh();
@@ -160,242 +260,231 @@ class _AddAccountPageState extends State<AddAccountPage> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.account != null ? '编辑账号密码' : '新增账号密码')),
       body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 平台名称
-                      TextFormField(
-                        controller: _platformController,
-                        decoration: InputDecoration(
-                          labelText: '平台名称',
-                          hintText: '请输入平台名称（如抖音、支付宝）',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return '请输入平台名称';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      // 账号
-                      TextFormField(
-                        controller: _usernameController,
-                        decoration: InputDecoration(
-                          labelText: '账号',
-                          hintText: '请输入账号（手机号/邮箱/用户名）',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return '请输入账号';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      // 密码
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: _isObscure,
-                        decoration: InputDecoration(
-                          labelText: '密码',
-                          hintText: '请输入密码',
-                          suffixIcon: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _isObscure = !_isObscure;
-                                  });
-                                },
-                                icon: Icon(
-                                  _isObscure
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _passwordController.clear();
-                                  });
-                                },
-                                icon: const Icon(Icons.delete),
-                              ),
-                            ],
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return '请输入密码';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 8.0),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: _generatePassword,
-                          child: const Text('生成密码'),
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      // 分类
-                      DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: '分类'),
-                        initialValue: _selectedCategory,
-                        items: _categories
-                            .map(
-                              (category) => DropdownMenuItem(
-                                value: category.name,
-                                child: Text(category.name),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 平台名称
+                TextFormField(
+                  controller: _platformController,
+                  decoration: InputDecoration(
+                    labelText: '平台名称',
+                    hintText: '请输入平台名称',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return '请输入平台名称';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                // 账号
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: '账号',
+                    hintText: '请输入账号（手机号/邮箱/用户名）',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return '请输入账号';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                // 密码
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _isObscure,
+                  decoration: InputDecoration(
+                    labelText: '密码',
+                    hintText: '请输入密码',
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () {
                             setState(() {
-                              _selectedCategory = value;
+                              _isObscure = !_isObscure;
                             });
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      // 备注
-                      TextFormField(
-                        controller: _remarkController,
-                        decoration: InputDecoration(
-                          labelText: '备注',
-                          hintText: '可选：备注账号信息（如工作账号/常用密码）',
-                          alignLabelWithHint: true,
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      // 网址
-                      TextFormField(
-                        controller: _urlController,
-                        decoration: InputDecoration(
-                          labelText: '网址',
-                          hintText: '可选：输入平台官网地址',
-                        ),
-                      ),
-                      const SizedBox(height: 24.0),
-                      // 自定义字段
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            '自定义字段',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          },
+                          icon: Icon(
+                            _isObscure
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
-                          const SizedBox(height: 12.0),
-                          // 已添加的自定义字段列表
-                          if (_customFields.isNotEmpty)
-                            Column(
-                              children: List.generate(
-                                _customFields.length,
-                                (index) => Container(
-                                  margin: const EdgeInsets.only(bottom: 8.0),
-                                  padding: const EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(),
-                                    borderRadius: BorderRadius.circular(4.0),
-                                  ),
-                                  child: Row(
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _passwordController.clear();
+                            });
+                          },
+                          icon: const Icon(Icons.delete),
+                        ),
+                      ],
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return '请输入密码';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8.0),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _generatePassword,
+                    child: const Text('生成密码'),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                // 分类
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(labelText: '分类'),
+                  initialValue: _selectedCategory,
+                  items: _categories
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category.name,
+                          child: Text(category.name),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _onCategoryChanged,
+                ),
+                const SizedBox(height: 16.0),
+                // 备注
+                TextFormField(
+                  controller: _remarkController,
+                  decoration: InputDecoration(
+                    labelText: '备注',
+                    hintText: '可选：备注账号信息',
+                    alignLabelWithHint: true,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                // 网址
+                TextFormField(
+                  controller: _urlController,
+                  decoration: InputDecoration(
+                    labelText: '网址',
+                    hintText: '可选：输入平台官网地址',
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                // 自定义字段
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '自定义字段',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 12.0),
+                    // 已添加的自定义字段列表
+                    if (_customFields.isNotEmpty)
+                      Column(
+                        children: List.generate(
+                          _customFields.length,
+                          (index) => Container(
+                            margin: const EdgeInsets.only(bottom: 8.0),
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              border: Border.all(),
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              _customFields[index]['name']!,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4.0),
-                                            Text(
-                                              _customFields[index]['value']!,
-                                            ),
-                                          ],
+                                      Text(
+                                        _customFields[index]['name']!,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                      IconButton(
-                                        onPressed: () =>
-                                            _removeCustomField(index),
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          size: 18,
-                                          color: Colors.red,
-                                        ),
-                                      ),
+                                      const SizedBox(height: 4.0),
+                                      Text(_customFields[index]['value']!),
                                     ],
                                   ),
                                 ),
-                              ),
+                                IconButton(
+                                  onPressed: () => _removeCustomField(index),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    size: 18,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
                             ),
-                          const SizedBox(height: 12.0),
-                          // 添加自定义字段的输入框
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _customFieldNameController,
-                                  decoration: const InputDecoration(
-                                    labelText: '字段名',
-                                    hintText: '如：邮箱、手机号',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8.0),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _customFieldValueController,
-                                  decoration: const InputDecoration(
-                                    labelText: '值',
-                                    hintText: '输入字段值',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8.0),
-                              ElevatedButton(
-                                onPressed: _addCustomField,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12.0,
-                                  ),
-                                ),
-                                child: const Text('添加'),
-                              ),
-                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 32.0),
-                      // 保存按钮
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _saveAccount,
-                          child: const Text('保存'),
                         ),
                       ),
-                    ],
+                    const SizedBox(height: 12.0),
+                    // 添加自定义字段的输入框
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _customFieldNameController,
+                            decoration: const InputDecoration(
+                              labelText: '字段名',
+                              hintText: '如：邮箱、手机号',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _customFieldValueController,
+                            decoration: const InputDecoration(
+                              labelText: '值',
+                              hintText: '输入字段值',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        ElevatedButton(
+                          onPressed: _addCustomField,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                            ),
+                          ),
+                          child: const Text('添加'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32.0),
+                // 保存按钮
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _saveAccount,
+                    child: const Text('保存'),
                   ),
                 ),
-              ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
