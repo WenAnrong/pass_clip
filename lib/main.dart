@@ -3,13 +3,35 @@ import 'package:flutter/services.dart';
 import 'package:pass_clip/routers/index.dart';
 import 'package:pass_clip/theme/index.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:window_manager/window_manager.dart';
+import 'dart:io';
 
 // 定义全局 NavigatorKey
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
   // 设置应用只支持竖屏
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 只有在桌面平台上才初始化窗口管理器
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    // 初始化窗口管理器
+    await windowManager.ensureInitialized();
+
+    // 设置窗口大小限制，使其类似手机那样的显示界面
+    WindowOptions windowOptions = WindowOptions(
+      size: Size(400, 800), // iPhone 11 Pro Max 尺寸
+      minimumSize: Size(350, 700), // 最小尺寸
+      maximumSize: Size(500, 850), // 最大尺寸，不允许拉长
+      center: true,
+      title: "秘荚",
+    );
+
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+    });
+  }
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

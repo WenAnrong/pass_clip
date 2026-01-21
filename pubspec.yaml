@@ -45,6 +45,7 @@ dependencies:
   webdav_client: ^1.2.2              # WebDAV客户端
   fluttertoast: ^9.0.0               # 吐司提示
   flutter_launcher_icons: ^0.14.4    # 应用图标生成
+  window_manager: ^0.5.1             # 桌面端窗口管理
 
 dev_dependencies:
   flutter_test:
