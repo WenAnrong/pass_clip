@@ -66,19 +66,10 @@ class ImportExportService {
         'Depth': '0',
       });
       final response = await client.send(request);
-      final responseBody = await response.stream.bytesToString();
       client.close();
-      // 将StreamedResponse转换为普通Response以便后续处理
-      final http.Response fullResponse = http.Response(
-        responseBody,
-        response.statusCode,
-        headers: response.headers,
-        reasonPhrase: response.reasonPhrase,
-      );
 
       // 坚果云可能返回207 Multi-Status或其他WebDAV特定状态码，所以我们接受200-399之间的状态码
-      final success =
-          fullResponse.statusCode >= 200 && fullResponse.statusCode < 400;
+      final success = response.statusCode >= 200 && response.statusCode < 400;
       return success;
     } catch (e) {
       return false;
@@ -129,6 +120,7 @@ class ImportExportService {
           'Authorization':
               'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
         });
+        await client.send(deleteRequest);
       }
 
       // 4. 上传新文件
@@ -211,8 +203,19 @@ class ImportExportService {
   Future<String> exportToCsv() async {
     final accounts = await _storageService.getAccounts();
 
+    // 收集所有自定义字段键
+    final customFieldKeys = <String>{};
+    for (var account in accounts) {
+      customFieldKeys.addAll(account.customFields.keys);
+    }
+
+    // 排序自定义字段键，确保顺序一致
+    final sortedCustomFieldKeys = customFieldKeys.toList()..sort();
+
     // CSV header
     final header = ['平台名称', '账号', '密码', '分类', '备注', '网址', '创建时间', '更新时间'];
+    // 添加自定义字段到表头
+    header.addAll(sortedCustomFieldKeys);
     final csvData = [header];
 
     // Convert accounts to CSV rows
@@ -227,6 +230,10 @@ class ImportExportService {
         account.createdAt.toIso8601String(),
         account.updatedAt.toIso8601String(),
       ];
+      // 添加自定义字段值
+      for (var key in sortedCustomFieldKeys) {
+        row.add(account.customFields[key] ?? '');
+      }
       csvData.add(row);
     }
 
@@ -272,55 +279,11 @@ class ImportExportService {
     }
   }
 
-  // 从CSV格式导入
-  Future<int> importFromCsv(String csvData) async {
-    try {
-      final csvRows = const CsvToListConverter().convert(csvData);
-      if (csvRows.isEmpty) return 0;
-
-      // Skip header row
-      final accountsList = csvRows.skip(1).toList();
-      int importedCount = 0;
-
-      for (var row in accountsList) {
-        if (row.length < 4) continue; // Skip invalid rows
-
-        try {
-          final account = Account(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            platform: row[0]?.toString() ?? '',
-            username: row[1]?.toString() ?? '',
-            password: row[2]?.toString() ?? '',
-            category: row[3]?.toString() ?? '未分类',
-            remark: row.length > 4 ? row[4]?.toString() : null,
-            url: row.length > 5 ? row[5]?.toString() : null,
-            createdAt: row.length > 6
-                ? DateTime.parse(row[6].toString())
-                : DateTime.now(),
-            updatedAt: row.length > 7
-                ? DateTime.parse(row[7].toString())
-                : DateTime.now(),
-          );
-
-          await _storageService.saveAccount(account);
-          importedCount++;
-        } catch (e) {
-          // Skip invalid rows
-          continue;
-        }
-      }
-
-      return importedCount;
-    } catch (e) {
-      throw Exception('CSV格式错误：$e');
-    }
-  }
-
   // 生成导出文件名
   String generateExportFileName(String format) {
     final now = DateTime.now();
     final dateString =
         '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-    return 'password_manager_$dateString.$format';
+    return 'pass_clip_$dateString.$format';
   }
 }

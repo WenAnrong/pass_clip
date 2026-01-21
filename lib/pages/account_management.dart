@@ -244,7 +244,7 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
                   controller: _usernameController,
                   decoration: InputDecoration(
                     labelText: '账号',
-                    hintText: '请输入账号（手机号/邮箱/用户名）',
+                    hintText: '请输入账号',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -394,7 +394,7 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
                             controller: _customFieldNameController,
                             decoration: const InputDecoration(
                               labelText: '字段名',
-                              hintText: '如：邮箱、手机号',
+                              hintText: '字段名',
                             ),
                           ),
                         ),

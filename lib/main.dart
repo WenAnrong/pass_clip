@@ -29,6 +29,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: '秘荚', // 应用名称
       initialRoute: '/initial', // 初始路由（首次启动时的页面，这里会做密码校验）
       routes: AppRouter.routes, // 应用路由配置

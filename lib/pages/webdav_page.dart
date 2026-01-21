@@ -160,8 +160,12 @@ class _WebDAVPageState extends State<WebDAVPage> {
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text('将下载的数据合并到本地，不影响现有数据'),
+              child: Text(
+                '将下载的数据合并到本地，不影响现有数据',
+                style: TextStyle(fontSize: 12.0),
+              ),
             ),
+
             const SizedBox(height: 16.0),
             SimpleDialogOption(
               onPressed: () {
@@ -174,7 +178,10 @@ class _WebDAVPageState extends State<WebDAVPage> {
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text('清空本地所有数据，使用下载的数据完全替换'),
+              child: Text(
+                '清空本地所有数据，使用下载的数据完全替换',
+                style: TextStyle(fontSize: 12.0),
+              ),
             ),
           ],
         );
@@ -328,7 +335,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
                                   ),
                                 )
                               : const Icon(Icons.upload),
-                          label: const Text('上传到WebDAV'),
+                          label: const Text('上传'),
                         ),
                       ),
                       const SizedBox(width: 16.0),
@@ -344,7 +351,7 @@ class _WebDAVPageState extends State<WebDAVPage> {
                                   ),
                                 )
                               : const Icon(Icons.download),
-                          label: const Text('从WebDAV下载'),
+                          label: const Text('下载'),
                         ),
                       ),
                     ],

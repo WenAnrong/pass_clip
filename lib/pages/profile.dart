@@ -208,6 +208,20 @@ class _ExportPageState extends State<ExportPage> {
                 ButtonSegment<String>(value: 'CSV', label: Text('CSV格式')),
               ],
             ),
+            const SizedBox(height: 12.0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('提示：'),
+                  SizedBox(height: 4.0),
+                  Text('• json是有加密的，用于安全备份'),
+                  Text('• csv格式无加密，可用wps等软件方便查看和编辑'),
+                  Text('• 如果要在新的设备上导入，需要先导出到json格式，csv格式不支持导入'),
+                ],
+              ),
+            ),
             const SizedBox(height: 24.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -251,13 +265,15 @@ class _ImportPageState extends State<ImportPage> {
   bool _isImporting = false;
   String? _fileName;
   String? _fileContent;
+  // 下载模式：true表示覆盖本地数据，false表示合并到本地
+  bool _overwriteMode = false;
 
   // 选择文件
   Future<void> _selectFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json', 'csv'],
+        allowedExtensions: ['json'],
       );
 
       if (result != null) {
@@ -286,8 +302,61 @@ class _ImportPageState extends State<ImportPage> {
       return;
     }
 
+    // 弹出下载模式选择对话框
+    if (!mounted) return;
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: const Text('选择导入模式'),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, false); // 合并模式
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text('合并到本地', style: TextStyle(fontSize: 16.0)),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                '将导入的数据合并到本地，不影响现有数据',
+                style: TextStyle(fontSize: 12.0),
+              ),
+            ),
+
+            const SizedBox(height: 16.0),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, true); // 覆盖模式
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text('覆盖本地数据', style: TextStyle(fontSize: 16.0)),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                '清空本地所有数据，使用导入的数据完全替换',
+                style: TextStyle(fontSize: 12.0),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 如果用户取消了选择，则不进行导入
+    if (result == null) {
+      return;
+    }
+
     setState(() {
       _isImporting = true;
+      _overwriteMode = result;
     });
 
     try {
@@ -296,17 +365,17 @@ class _ImportPageState extends State<ImportPage> {
       if (_fileName!.endsWith('.json')) {
         importedCount = await _importExportService.importFromJson(
           _fileContent!,
+          overwrite: _overwriteMode,
         );
-      } else if (_fileName!.endsWith('.csv')) {
-        importedCount = await _importExportService.importFromCsv(_fileContent!);
       } else {
-        throw Exception('不支持的文件格式');
+        throw Exception('只支持JSON格式的导入');
       }
 
       // 导入成功，返回上一页
       navigator.pop();
       // 显示成功提示
-      Fluttertoast.showToast(msg: '导入成功，共导入$importedCount条账号信息');
+      final modeText = _overwriteMode ? '覆盖' : '合并';
+      Fluttertoast.showToast(msg: '导入成功，已$modeText本地数据，共导入$importedCount条账号信息');
     } catch (e) {
       setState(() {
         _isImporting = false;
@@ -330,7 +399,7 @@ class _ImportPageState extends State<ImportPage> {
               style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16.0),
-            const Text('选择导入文件（支持JSON和CSV格式）：'),
+            const Text('选择导入文件（只支持JSON格式）：'),
             const SizedBox(height: 16.0),
             InkWell(
               onTap: _selectFile,
