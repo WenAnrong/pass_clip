@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:encrypt/encrypt.dart';
+import 'dart:async';
 import 'dart:math';
 
 class AuthService {
@@ -16,32 +17,47 @@ class AuthService {
   late Key _key;
   late IV _iv;
   late Encrypter _encrypter;
-  bool _isInitialized = false;
+
+  // 初始化完成的Future
+  Future<void>? _initializationFuture;
+
+  // 缓存常用值
+  bool? _isPasswordSetCache;
 
   // 初始化加密参数
   Future<void> _initialize() async {
-    if (_isInitialized) return; // 避免重复初始化
-
-    // 尝试从存储中获取密钥和IV
-    final keyString = await _storage.read(key: 'encryption_key');
-    final ivString = await _storage.read(key: 'encryption_iv');
-
-    if (keyString != null && ivString != null) {
-      // 使用已存储的密钥和IV
-      _key = Key.fromBase64(keyString);
-      _iv = IV.fromBase64(ivString);
-    } else {
-      // 生成新的密钥和IV
-      _key = Key.fromLength(32);
-      _iv = IV.fromLength(16);
-
-      // 存储密钥和IV
-      await _storage.write(key: 'encryption_key', value: _key.base64);
-      await _storage.write(key: 'encryption_iv', value: _iv.base64);
+    if (_initializationFuture != null) {
+      return _initializationFuture!;
     }
 
-    _encrypter = Encrypter(AES(_key));
-    _isInitialized = true;
+    final completer = Completer<void>();
+    _initializationFuture = completer.future;
+
+    try {
+      // 尝试从存储中获取密钥和IV
+      final keyString = await _storage.read(key: 'encryption_key');
+      final ivString = await _storage.read(key: 'encryption_iv');
+
+      if (keyString != null && ivString != null) {
+        // 使用已存储的密钥和IV
+        _key = Key.fromBase64(keyString);
+        _iv = IV.fromBase64(ivString);
+      } else {
+        // 生成新的密钥和IV
+        _key = Key.fromLength(32);
+        _iv = IV.fromLength(16);
+
+        // 存储密钥和IV
+        await _storage.write(key: 'encryption_key', value: _key.base64);
+        await _storage.write(key: 'encryption_iv', value: _iv.base64);
+      }
+
+      _encrypter = Encrypter(AES(_key));
+      completer.complete();
+    } catch (e) {
+      completer.completeError(e);
+      _initializationFuture = null; // 允许重新初始化
+    }
   }
 
   // 保存密码（应用密码，用于登录验证）
@@ -53,12 +69,17 @@ class AuthService {
       key: 'encrypted_password',
       value: encryptedPassword.base64,
     );
+    // 更新缓存
+    _isPasswordSetCache = true;
   }
 
   // 验证密码
   Future<bool> verifyPassword(String password) async {
     final encryptedPassword = await _storage.read(key: 'encrypted_password');
-    if (encryptedPassword == null) return false; // 没设置过密码
+    if (encryptedPassword == null) {
+      _isPasswordSetCache = false;
+      return false; // 没设置过密码
+    }
 
     await _initialize();
 
@@ -75,24 +96,13 @@ class AuthService {
 
   // 检查是否已设置密码
   Future<bool> isPasswordSet() async {
+    if (_isPasswordSetCache != null) {
+      return _isPasswordSetCache!;
+    }
+
     final encryptedPassword = await _storage.read(key: 'encrypted_password');
-    return encryptedPassword != null;
-  }
-
-  // 保存登录状态
-  Future<void> saveLoginStatus(bool isLoggedIn) async {
-    await _storage.write(key: 'is_logged_in', value: isLoggedIn.toString());
-  }
-
-  // 获取登录状态
-  Future<bool> getLoginStatus() async {
-    final status = await _storage.read(key: 'is_logged_in');
-    return status == 'true';
-  }
-
-  // 清除登录状态
-  Future<void> clearLoginStatus() async {
-    await _storage.delete(key: 'is_logged_in');
+    _isPasswordSetCache = encryptedPassword != null;
+    return _isPasswordSetCache!;
   }
 
   // 生成随机密码
@@ -169,7 +179,8 @@ class AuthService {
   Future<void> clearAllData() async {
     // 删除所有存储的数据
     await _storage.deleteAll();
-    // 重置初始化状态，确保下次使用时重新生成密钥
-    _isInitialized = false;
+    // 重置状态和缓存
+    _initializationFuture = null;
+    _isPasswordSetCache = false;
   }
 }

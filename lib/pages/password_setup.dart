@@ -60,7 +60,6 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
 
         // 保存新密码
         await _authService.savePassword(_passwordController.text);
-        await _authService.saveLoginStatus(true);
 
         // 保存密码提示
         if (_passwordHintController.text.isNotEmpty) {

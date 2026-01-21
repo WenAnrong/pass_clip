@@ -145,9 +145,6 @@ class _LoginPageState extends State<LoginPage> {
         // 保存重置后的状态到持久化存储
         await _authService.resetLockState();
 
-        // 保存登录状态
-        await _authService.saveLoginStatus(true);
-
         if (mounted) {
           navigator.pushReplacementNamed('/');
         }
