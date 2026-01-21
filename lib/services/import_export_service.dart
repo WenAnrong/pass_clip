@@ -82,48 +82,15 @@ class ImportExportService {
       // 导出JSON数据
       final jsonData = await exportToJson();
 
-      // 生成文件名
-      final fileName = generateExportFileName('json');
+      // 使用固定的文件名
+      final fileName = 'pass_clip_backup.json';
 
       // 构建基础URL - 确保URL格式正确
       final baseUrl = config.url.endsWith('/') ? config.url : '${config.url}/';
       final uploadUrl = Uri.parse('$baseUrl$fileName');
 
-      // 1. 获取WebDAV目录中的所有文件
+      // 上传文件
       final client = http.Client();
-      final propfindRequest = http.Request('PROPFIND', Uri.parse(baseUrl));
-      propfindRequest.headers.addAll({
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
-        'Depth': '1',
-      });
-      final propfindResponse = await client.send(propfindRequest);
-      final propfindResponseBody = await propfindResponse.stream
-          .bytesToString();
-
-      // 2. 解析XML响应，找出所有旧的导出文件
-      final RegExp filePattern = RegExp(
-        r'<d:displayname>(pass_clip_export_.*json)</d:displayname>',
-        dotAll: true,
-      );
-      final matches = filePattern.allMatches(propfindResponseBody);
-      final oldFiles = matches
-          .map((match) => match.group(1))
-          .whereType<String>()
-          .toList();
-
-      // 3. 删除所有旧文件
-      for (final oldFile in oldFiles) {
-        final deleteUrl = Uri.parse('$baseUrl$oldFile');
-        final deleteRequest = http.Request('DELETE', deleteUrl);
-        deleteRequest.headers.addAll({
-          'Authorization':
-              'Basic ${base64Encode(utf8.encode('${config.username}:${config.password}'))}',
-        });
-        await client.send(deleteRequest);
-      }
-
-      // 4. 上传新文件
       final putRequest = http.Request('PUT', uploadUrl);
       putRequest.headers.addAll({
         'Content-Type': 'application/json',
@@ -151,8 +118,8 @@ class ImportExportService {
     bool overwrite = false,
   }) async {
     try {
-      // 生成文件名
-      final fileName = generateExportFileName('json');
+      // 使用固定的文件名
+      final fileName = 'pass_clip_backup.json';
 
       // 构建下载URL - 确保URL格式正确
       final baseUrl = config.url.endsWith('/') ? config.url : '${config.url}/';
