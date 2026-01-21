@@ -1,11 +1,15 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/account.dart';
-import '../models/category.dart';
+import 'package:pass_clip/models/account.dart';
+import 'package:pass_clip/models/category.dart';
+import 'package:pass_clip/utils/encryption_utils.dart';
 import 'dart:convert';
 
 class StorageService {
   static const String _accountsKey = 'accounts';
   static const String _categoriesKey = 'categories';
+
+  // 加密工具实例
+  final EncryptionUtils _encryptionUtils = EncryptionUtils();
 
   // 获取SharedPreferences实例
   Future<SharedPreferences> _getPrefs() async {
@@ -17,8 +21,45 @@ class StorageService {
   // 保存账号列表
   Future<void> saveAccounts(List<Account> accounts) async {
     final prefs = await _getPrefs();
-    final accountsJson = accounts.map((account) => account.toJson()).toList();
-    await prefs.setString(_accountsKey, json.encode(accountsJson));
+
+    // 加密账号数据
+    final encryptedAccounts = <Map<String, dynamic>>[];
+    for (final account in accounts) {
+      final accountMap = account.toMap();
+
+      // 加密敏感信息
+      accountMap['username'] = await _encryptionUtils.encrypt(
+        accountMap['username'],
+      );
+      accountMap['password'] = await _encryptionUtils.encrypt(
+        accountMap['password'],
+      );
+      if (accountMap['remark'] != null) {
+        accountMap['remark'] = await _encryptionUtils.encrypt(
+          accountMap['remark'],
+        );
+      }
+      if (accountMap['url'] != null) {
+        accountMap['url'] = await _encryptionUtils.encrypt(accountMap['url']);
+      }
+
+      // 加密自定义字段
+      if (accountMap['customFields'] != null &&
+          accountMap['customFields'] is Map) {
+        final customFields = accountMap['customFields'] as Map<String, String>;
+        final encryptedCustomFields = <String, String>{};
+        for (final entry in customFields.entries) {
+          encryptedCustomFields[entry.key] = await _encryptionUtils.encrypt(
+            entry.value,
+          );
+        }
+        accountMap['customFields'] = encryptedCustomFields;
+      }
+
+      encryptedAccounts.add(accountMap);
+    }
+
+    await prefs.setString(_accountsKey, json.encode(encryptedAccounts));
   }
 
   // 获取账号列表
@@ -26,8 +67,43 @@ class StorageService {
     final prefs = await _getPrefs();
     final accountsJson = prefs.getString(_accountsKey);
     if (accountsJson == null) return [];
+
     final accountsList = json.decode(accountsJson) as List;
-    return accountsList.map((account) => Account.fromJson(account)).toList();
+    final decryptedAccounts = <Account>[];
+
+    for (final accountMap in accountsList) {
+      final map = accountMap as Map<String, dynamic>;
+
+      // 解密敏感信息
+      if (map.containsKey('username') && map['username'] != null) {
+        map['username'] = await _encryptionUtils.decrypt(map['username']);
+      }
+      if (map.containsKey('password') && map['password'] != null) {
+        map['password'] = await _encryptionUtils.decrypt(map['password']);
+      }
+      if (map.containsKey('remark') && map['remark'] != null) {
+        map['remark'] = await _encryptionUtils.decrypt(map['remark']);
+      }
+      if (map.containsKey('url') && map['url'] != null) {
+        map['url'] = await _encryptionUtils.decrypt(map['url']);
+      }
+
+      // 解密自定义字段
+      if (map.containsKey('customFields') && map['customFields'] != null) {
+        final encryptedCustomFields =
+            map['customFields'] as Map<dynamic, dynamic>;
+        final decryptedCustomFields = <String, String>{};
+        for (final entry in encryptedCustomFields.entries) {
+          decryptedCustomFields[entry.key.toString()] = await _encryptionUtils
+              .decrypt(entry.value.toString());
+        }
+        map['customFields'] = decryptedCustomFields;
+      }
+
+      decryptedAccounts.add(Account.fromMap(map));
+    }
+
+    return decryptedAccounts;
   }
 
   // 保存单个账号

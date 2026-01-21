@@ -216,8 +216,8 @@ class _ExportPageState extends State<ExportPage> {
                 children: [
                   Text('提示：'),
                   SizedBox(height: 4.0),
-                  Text('• json是有加密的，用于安全备份'),
-                  Text('• csv格式无加密，可用wps等软件方便查看和编辑'),
+                  Text("• 导出的数据是明文的，请保存好"),
+                  Text('• csv格式可用wps等软件方便查看和编辑'),
                   Text('• 如果要在新的设备上导入，需要先导出到json格式，csv格式不支持导入'),
                 ],
               ),
