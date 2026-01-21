@@ -103,9 +103,7 @@ class ProfilePage extends StatelessWidget {
                         children: [
                           Text('版本号：1.0.0'),
                           SizedBox(height: 8.0),
-                          Text('开发信息：秘荚开发者'),
-                          SizedBox(height: 8.0),
-                          Text('隐私政策：本APP所有数据仅存储在本地设备，无任何网络传输，保障数据安全。'),
+                          Text('开发信息：war'),
                         ],
                       ),
                       actions: [

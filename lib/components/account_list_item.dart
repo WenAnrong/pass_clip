@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/account.dart';
+import 'package:pass_clip/models/account.dart';
 
 class AccountListItem extends StatelessWidget {
   final Account account;

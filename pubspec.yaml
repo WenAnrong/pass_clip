@@ -35,18 +35,16 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_secure_storage: ^10.0.0    # 安全存储敏感数据
-  local_auth: ^3.0.0                 # 生物识别
   encrypt: ^5.0.3                    # AES加密解密
   csv: ^6.0.0                        # CSV文件读写
   shared_preferences: ^2.5.4         # 普通配置存储
   path_provider: ^2.1.5              # 文件路径获取
-  permission_handler: ^12.0.1        # 权限申请（文件/生物识别）
   file_picker: ^10.3.8               # 文件选择器
   share_plus: ^12.0.1                # 分享文件
   http: ^1.6.0                       # HTTP客户端
   webdav_client: ^1.2.2              # WebDAV客户端
   fluttertoast: ^9.0.0               # 吐司提示
-  flutter_launcher_icons: ^0.14.4    # 应用图标
+  flutter_launcher_icons: ^0.14.4    # 应用图标生成
 
 dev_dependencies:
   flutter_test:
