@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 
-// 主题色常量：#fee497
-const Color primaryThemeColor = Color(0xFFfee497);
+// 亮色常量
+// 主题色常量：#9CCC65
+const Color primaryThemeColor = Color(0xFF9CCC65);
+// 辅助色常量：#F1F8E9
+const Color secondaryThemeColor = Color(0xFFF1F8E9);
+// 部分背景色常量：#E8F5E9
+const Color backgroundColor = Color(0xFFE8F5E9);
+
+// 暗色常量
+// 主题色常量：#66BB6A
+const Color darkPrimaryThemeColor = Color(0xFF66BB6A);
+// 辅助色常量：#E8F5E9
+const Color darkSecondaryThemeColor = Color(0xFFE8F5E9);
 
 // 应用主题配置
 final appTheme = ThemeData(
@@ -10,10 +21,10 @@ final appTheme = ThemeData(
   // 基于指定的主题色生成整套协调的颜色体系
   colorScheme: ColorScheme.fromSeed(
     seedColor: primaryThemeColor,
-    // 显式指定主色（确保核心色为#fee497）
+    // 指定主色
     primary: primaryThemeColor,
-    // 次要颜色（确保与主色协调）
-    secondary: Color(0xFFfbf4de),
+    // 次要颜色
+    secondary: secondaryThemeColor,
     // 主题亮度：浅色模式
     brightness: Brightness.light,
   ),
@@ -38,7 +49,7 @@ final appTheme = ThemeData(
   ),
   // 显示主题配置
   dialogTheme: DialogThemeData(
-    backgroundColor: Color(0xFFfbf4de),
+    backgroundColor: backgroundColor,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32.0)),
   ),
   // 文本按钮主题配置
@@ -47,7 +58,7 @@ final appTheme = ThemeData(
   ),
   // 底部导航栏主题配置
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
-    backgroundColor: Color(0xFFfbf4de),
+    backgroundColor: backgroundColor,
     selectedItemColor: Colors.black87,
     unselectedItemColor: Colors.grey,
   ),
@@ -63,7 +74,12 @@ final appTheme = ThemeData(
 final darkAppTheme = ThemeData(
   useMaterial3: true,
   colorScheme: ColorScheme.fromSeed(
-    seedColor: primaryThemeColor,
+    seedColor: darkPrimaryThemeColor,
+    // 指定主色
+    primary: darkPrimaryThemeColor,
+    // 次要颜色
+    secondary: darkSecondaryThemeColor,
+    // 主题亮度：深色模式
     brightness: Brightness.dark,
   ),
 );
