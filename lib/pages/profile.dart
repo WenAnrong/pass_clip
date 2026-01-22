@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:pass_clip/utils/snackbar_util.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -158,17 +159,37 @@ class _ExportPageState extends State<ExportPage> {
         fileName = _importExportService.generateExportFileName('csv');
       }
 
-      // 保存到本地文件
-      final directory = await getApplicationDocumentsDirectory();
-      final path = '${directory.path}/$fileName';
-      final file = File(path);
-      await file.writeAsString(exportData);
+      // 根据平台选择不同的导出方式
+      if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+        // 桌面端：保存到Documents文件夹下，然后打开这个文件夹
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(exportData);
 
-      navigator.pop();
+        navigator.pop();
 
-      await SharePlus.instance.share(
-        ShareParams(files: [XFile(path)], text: '分享导出的账号数据'),
-      );
+        // 显示成功提示
+        if (mounted) {
+          SnackBarUtil.show(context, '导出成功，文件已保存到：$path');
+        }
+
+        // 打开Documents文件夹
+        final uri = Uri.directory(directory.path);
+        await launchUrl(uri);
+      } else {
+        // 移动端：保存到本地并分享
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(exportData);
+
+        navigator.pop();
+
+        await SharePlus.instance.share(
+          ShareParams(files: [XFile(path)], text: '分享导出的账号数据'),
+        );
+      }
     } catch (e) {
       setState(() {
         _isExporting = false;

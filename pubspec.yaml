@@ -45,6 +45,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.4    # 应用图标生成
   window_manager: ^0.5.1             # 桌面端窗口管理
   file_selector: ^1.1.0              # 全平台文件选择器
+  url_launcher: ^6.3.0               # 打开文件/文件夹
 
 dev_dependencies:
   flutter_test:

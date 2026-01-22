@@ -4,8 +4,8 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
-	<!-- 文件读写权限 -->
-	<key>com.apple.security.files.user-selected.read-write</key>
+	<!-- 文件用户选择只读权限 -->
+	<key>com.apple.security.files.user-selected.read-only</key>
     <true/>
 </dict>
 </plist>
