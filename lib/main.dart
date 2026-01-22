@@ -2,12 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pass_clip/routers/index.dart';
 import 'package:pass_clip/theme/index.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:io';
-
-// 定义全局 NavigatorKey
-final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   // 设置应用只支持竖屏
@@ -61,10 +57,6 @@ class _MyAppState extends State<MyApp> {
       darkTheme: darkAppTheme,
       // 主题模式：跟随系统设置
       themeMode: ThemeMode.system,
-      // 添加全局 navigatorKey
-      navigatorKey: appNavigatorKey,
-      // 配置 FToastBuilder（toast 挂载必备）
-      builder: FToastBuilder(),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/services/auth_service.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pass_clip/utils/snackbar_util.dart';
 import 'dart:async';
 
 class LoginPage extends StatefulWidget {
@@ -179,15 +179,19 @@ class _LoginPageState extends State<LoginPage> {
 
           // 延迟显示Toast，避开UI刷新的时机
           Future.delayed(const Duration(milliseconds: 50), () {
-            Fluttertoast.showToast(
-              msg: '密码错误，剩余尝试次数：${5 - newFailedAttempts}',
-              gravity: ToastGravity.BOTTOM, // 固定在底部，避免布局跳动
-            );
+            if (mounted) {
+              SnackBarUtil.show(
+                context,
+                '密码错误，剩余尝试次数：${5 - newFailedAttempts}',
+              );
+            }
           });
         }
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: '验证失败，请重试');
+      if (mounted) {
+        SnackBarUtil.show(context, '验证失败，请重试');
+      }
     }
   }
 
@@ -221,7 +225,7 @@ class _LoginPageState extends State<LoginPage> {
         })
         .catchError((e) {
           if (mounted) {
-            Fluttertoast.showToast(msg: '获取密码提示失败，请重试');
+            SnackBarUtil.show(context, '获取密码提示失败，请重试');
           }
         });
   }

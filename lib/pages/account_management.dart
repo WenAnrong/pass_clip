@@ -4,7 +4,7 @@ import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'dart:math';
 import 'package:pass_clip/utils/refresh_notifier.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pass_clip/utils/snackbar_util.dart';
 
 class AccountManagementPage extends StatefulWidget {
   final Account? account;
@@ -135,7 +135,7 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
               final newCategoryName = categoryNameController.text.trim();
 
               if (newCategoryName.isEmpty) {
-                Fluttertoast.showToast(msg: '分类名称不能为空');
+                SnackBarUtil.show(dialogContext, '分类名称不能为空');
                 return;
               }
 
@@ -144,7 +144,7 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
               );
 
               if (categoryExists) {
-                Fluttertoast.showToast(msg: '分类已存在');
+                SnackBarUtil.show(dialogContext, '分类已存在');
                 return;
               }
 
@@ -170,11 +170,11 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
         _categories.add(Category(name: '添加新分类', count: 0));
         _selectedCategory = newCategoryName;
       });
-
-      Fluttertoast.showToast(msg: '分类添加成功');
       RefreshNotifier.instance.notifyRefresh();
     } catch (e) {
-      Fluttertoast.showToast(msg: '分类添加失败：$e');
+      if (mounted) {
+        SnackBarUtil.show(context, '分类添加失败：$e');
+      }
     }
   }
 
@@ -210,7 +210,9 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
 
       navigator.pop();
       RefreshNotifier.instance.notifyRefresh();
-      Fluttertoast.showToast(msg: widget.account != null ? '更新成功' : '保存成功');
+      if (mounted) {
+        SnackBarUtil.show(context, widget.account != null ? '更新成功' : '保存成功');
+      }
     }
   }
 

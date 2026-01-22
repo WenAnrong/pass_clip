@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pass_clip/services/auth_service.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pass_clip/utils/snackbar_util.dart';
 
 class PasswordSetupPage extends StatefulWidget {
   const PasswordSetupPage({super.key, this.isFirstTime = false});
@@ -53,7 +53,9 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
             _oldPasswordController.text,
           );
           if (!isCorrect) {
-            Fluttertoast.showToast(msg: '旧密码错误，请重新输入');
+            if (mounted) {
+              SnackBarUtil.show(context, '旧密码错误，请重新输入');
+            }
             return;
           }
         }
@@ -66,7 +68,9 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
           await _authService.savePasswordHint(_passwordHintController.text);
         }
 
-        Fluttertoast.showToast(msg: '密码设置成功');
+        if (mounted) {
+          SnackBarUtil.show(context, '密码设置成功');
+        }
 
         // 立即导航到主界面
         if (mounted) {
@@ -75,7 +79,9 @@ class _PasswordSetupPageState extends State<PasswordSetupPage> {
           ).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
         }
       } catch (e) {
-        Fluttertoast.showToast(msg: '密码设置失败：$e');
+        if (mounted) {
+          SnackBarUtil.show(context, '密码设置失败：$e');
+        }
       }
     }
   }

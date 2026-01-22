@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'package:pass_clip/utils/refresh_notifier.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pass_clip/utils/snackbar_util.dart';
 
 class CategoryManagementPage extends StatefulWidget {
   const CategoryManagementPage({super.key});
@@ -48,7 +48,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
 
       // 检查分类是否已存在
       if (_categories.any((category) => category.name == categoryName)) {
-        Fluttertoast.showToast(msg: '分类已存在');
+        SnackBarUtil.show(context, '分类已存在');
         return;
       }
 
@@ -62,8 +62,6 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
       setState(() {
         _isAdding = false;
       });
-
-      Fluttertoast.showToast(msg: '分类创建成功');
     }
   }
 
@@ -88,7 +86,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
             category.name == newCategoryName &&
             category.name != _editingCategory,
       )) {
-        Fluttertoast.showToast(msg: '分类已存在');
+        SnackBarUtil.show(context, '分类已存在');
 
         return;
       }
@@ -118,8 +116,6 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
       setState(() {
         _isEditing = false;
       });
-
-      Fluttertoast.showToast(msg: '分类更新成功');
     }
   }
 
@@ -128,8 +124,7 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
     final navigator = Navigator.of(context);
 
     if (categoryName == '未分类') {
-      Fluttertoast.showToast(msg: '默认分类不可删除');
-
+      SnackBarUtil.show(context, '默认分类不可删除');
       return;
     }
 
@@ -152,7 +147,6 @@ class _CategoryManagementPageState extends State<CategoryManagementPage> {
                 RefreshNotifier.instance.notifyRefresh(); // 发送刷新通知
                 await _loadCategories();
                 navigator.pop();
-                Fluttertoast.showToast(msg: '分类删除成功');
               },
               child: const Text('删除'),
             ),

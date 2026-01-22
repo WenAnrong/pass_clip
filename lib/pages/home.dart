@@ -5,7 +5,6 @@ import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
 import 'package:pass_clip/utils/refresh_notifier.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -242,8 +241,6 @@ class _HomePageState extends State<HomePage> {
 
                 // 用缓存的对象执行操作
                 navigator.pop();
-
-                Fluttertoast.showToast(msg: '删除成功');
               },
               child: const Text('删除'),
             ),
