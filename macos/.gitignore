@@ -5,3 +5,29 @@
 # Xcode-related
 **/dgph
 **/xcuserdata/
+
+# Xcode编译产物
+**/DerivedData/
+**/build/
+*.xcarchive
+*.app
+
+# macOS敏感配置/证书
+*.p12
+*.cer
+*.mobileprovision
+GoogleService-Info.plist
+.env
+.env.*
+key.plist
+secret.json
+
+# Xcode本地工程配置
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+!default.pbxuser
+!default.mode1v3
+!default.mode2v3
+!default.perspectivev3

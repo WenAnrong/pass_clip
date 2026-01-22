@@ -32,3 +32,34 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# 签名/证书相关（核心）
+*.p12
+*.cer
+*.mobileprovision
+*.p8
+*.keystore
+*.jks
+
+# 第三方服务敏感配置
+GoogleService-Info.plist
+
+# 环境配置文件
+.env
+.env.*
+!env.example
+*.env
+
+# 编译产物/归档文件
+**/build/
+*.ipa
+*.xcarchive
+
+# 5. 其他敏感配置
+key.plist
+secret.json
+*.key
+
+# Xcode额外临时文件
+*.xccheckout
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plis
