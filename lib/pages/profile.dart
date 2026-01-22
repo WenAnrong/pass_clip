@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pass_clip/services/import_export_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:pass_clip/utils/snackbar_util.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -271,17 +271,18 @@ class _ImportPageState extends State<ImportPage> {
   // 选择文件
   Future<void> _selectFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
+      final result = await openFile(
+        acceptedTypeGroups: [
+          XTypeGroup(label: 'JSON Files', extensions: ['json']),
+        ],
       );
 
       if (result != null) {
-        final file = File(result.files.single.path!);
+        final file = File(result.path);
         final content = await file.readAsString();
 
         setState(() {
-          _fileName = result.files.single.name;
+          _fileName = result.name;
           _fileContent = content;
         });
       }

@@ -39,12 +39,12 @@ dependencies:
   csv: ^6.0.0                        # CSV文件读写
   shared_preferences: ^2.5.4         # 普通配置存储
   path_provider: ^2.1.5              # 文件路径获取
-  file_picker: ^10.3.8               # 文件选择器
   share_plus: ^12.0.1                # 分享文件
   http: ^1.6.0                       # HTTP客户端
   webdav_client: ^1.2.2              # WebDAV客户端
   flutter_launcher_icons: ^0.14.4    # 应用图标生成
   window_manager: ^0.5.1             # 桌面端窗口管理
+  file_selector: ^1.1.0              # 全平台文件选择器
 
 dev_dependencies:
   flutter_test:
@@ -101,8 +101,15 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 # flutter_launcher_icons 配置
+# flutter pub run flutter_launcher_icons:main
 flutter_launcher_icons:
   android: true
   ios: true
+  macos: 
+    generate: true
+  windows: 
+    generate: true
+  linux: 
+    generate: true
   image_path: "lib/assets/icon/icon-1024x1024.png"
   adaptive_icon_background: "#FFFFFF"
