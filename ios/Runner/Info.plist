@@ -45,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- 说明网络使用目的 -->
+    <key>NSNetworkUsageDescription</key>
+    <string>需要访问网络连接WebDAV服务器，实现文件的上传和下载功能</string>
+	<!-- ATS配置（仅访问非HTTPS的WebDAV服务器时需要） -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+    	<!-- 允许所有HTTP请求 -->
+    	<key>NSAllowsArbitraryLoads</key>
+    	<true/>
+    </dict>
+	<!-- 如果需要蜂窝网络（不仅Wi-Fi），需声明（iOS 13+） -->
+    <key>NSCellularDataUsageDescription</key>
+    <string>允许使用蜂窝网络连接WebDAV服务器，确保无Wi-Fi时也能传输文件</string>
 </dict>
 </plist>
