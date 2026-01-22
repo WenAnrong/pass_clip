@@ -161,9 +161,17 @@ class _ExportPageState extends State<ExportPage> {
 
       // 根据平台选择不同的导出方式
       if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
-        // 桌面端：保存到Documents文件夹下，然后打开这个文件夹
         final directory = await getApplicationDocumentsDirectory();
-        final path = '${directory.path}/$fileName';
+        // 创建备份目录
+        final backupDirectory = Directory('${directory.path}/passClip_backup');
+        if (!backupDirectory.existsSync()) {
+          try {
+            backupDirectory.createSync(recursive: true);
+          } catch (e) {
+            throw Exception('创建备份目录失败：$e');
+          }
+        }
+        final path = '${backupDirectory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(exportData);
 
@@ -175,12 +183,50 @@ class _ExportPageState extends State<ExportPage> {
         }
 
         // 打开Documents文件夹
-        final uri = Uri.directory(directory.path);
-        await launchUrl(uri);
+        final uri = Uri.directory(backupDirectory.path);
+        try {
+          await launchUrl(uri);
+        } catch (e) {
+          // 打开目录失败不影响导出成功状态
+          if (mounted) {
+            SnackBarUtil.show(
+              context,
+              '打开目录失败，可能是系统不支持打开目录，建议手动打开, 文件路径：$path',
+            );
+          }
+        }
       } else {
         // 移动端：保存到本地并分享
-        final directory = await getApplicationDocumentsDirectory();
-        final path = '${directory.path}/$fileName';
+        final directory = Platform.isAndroid
+            ? (await getExternalStorageDirectory() ??
+                  await getApplicationDocumentsDirectory())
+            : await getApplicationDocumentsDirectory();
+
+        // 创建备份目录
+        final backupDirectory = Directory('${directory.path}/passClip_backup');
+        if (!backupDirectory.existsSync()) {
+          try {
+            backupDirectory.createSync(recursive: true);
+          } catch (e) {
+            throw Exception('创建备份目录失败：$e');
+          }
+        }
+
+        // 检测是否有旧的导出数据，如果有的话就删除
+        final files = backupDirectory.listSync();
+        for (var file in files) {
+          if (file is File &&
+              (file.path.endsWith('.json') || file.path.endsWith('.csv'))) {
+            try {
+              await file.delete();
+            } catch (e) {
+              // 单个文件删除失败不影响整体导出流程
+              debugPrint('删除旧文件失败：$e');
+            }
+          }
+        }
+
+        final path = '${backupDirectory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(exportData);
 
