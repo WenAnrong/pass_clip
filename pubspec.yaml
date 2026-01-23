@@ -119,3 +119,6 @@ flutter_launcher_icons:
 
 # change_app_package_name 的使用
 # flutter pub run change_app_package_name:main cn.iamwar.pass_clip
+
+android:
+  ndk: none
