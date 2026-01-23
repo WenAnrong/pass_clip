@@ -324,7 +324,7 @@ class _HomePageState extends State<HomePage> {
                             arguments: account.id,
                           );
                         },
-                        onLongPress: () {
+                        onDelete: () {
                           _showDeleteConfirm(account);
                         },
                       );
