@@ -54,12 +54,27 @@
 - `share_plus`：分享文件
 - `http`：HTTP客户端
 - `webdav_client`：WebDAV客户端
-- `flutter_launcher_icons`：应用图标生成
 - `window_manager`：桌面端窗口管理
 - `file_selector`：全平台文件选择器
 - `url_launcher`：打开文件/文件夹
 
-## 生成图标
+## 生成图标和修改包名
+
+### 依赖
+这里使用
+- `flutter_launcher_icons`：应用图标生成
+- `change_app_package_name`：应用包名修改
+
+两个插件进行修改
+
+### 修改包名
+
+这个插件可以帮助我们快速修改包名，命令如下
+```bash
+flutter pub run change_app_package_name:main cn.iamwar.pass_clip
+```
+
+### 修改图标
 
 在项目根目录下执行以下命令，即可生成应用图标：
 配置文件在 `pubspec.yaml` 中，修改 `flutter_launcher_icons` 部分即可。
@@ -107,7 +122,8 @@ pass_clip/
 ## 许可证
 
 本项目基础版采用 BSD 3-Clause 开源协议，核心规则：
-✅ 允许自由使用、修改、分发（包括商用）
+
+✅ 允许自由使用、修改、分发
 
 ⚠️ 约束条件：
 - 分发时需保留原版权声明与协议文本
