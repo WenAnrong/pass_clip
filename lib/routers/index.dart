@@ -10,6 +10,7 @@ import 'package:pass_clip/pages/category_management.dart';
 import 'package:pass_clip/pages/login.dart';
 import 'package:pass_clip/pages/password_setup.dart';
 import 'package:pass_clip/pages/webdav_page.dart';
+import 'package:pass_clip/pages/password_generator_page.dart';
 
 class AppRouter {
   static Map<String, WidgetBuilder> routes = {
@@ -30,5 +31,6 @@ class AppRouter {
       return PasswordSetupPage(isFirstTime: args?['isFirstTime'] ?? false);
     },
     '/webdav': (context) => const WebDAVPage(),
+    '/passwordGenerator': (context) => const PasswordGeneratorPage(),
   };
 }

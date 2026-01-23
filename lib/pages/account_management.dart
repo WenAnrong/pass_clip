@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pass_clip/models/account.dart';
 import 'package:pass_clip/models/category.dart';
 import 'package:pass_clip/services/storage_service.dart';
-import 'dart:math';
 import 'package:pass_clip/utils/refresh_notifier.dart';
 import 'package:pass_clip/utils/snackbar_util.dart';
 
@@ -63,17 +62,14 @@ class _AccountManagementPageState extends State<AccountManagementPage> {
     setState(() {});
   }
 
-  void _generatePassword() {
-    const chars =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%^&*()';
-    final random = Random();
-    final password = String.fromCharCodes(
-      Iterable.generate(
-        12,
-        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
-      ),
-    );
-    _passwordController.text = password;
+  void _generatePassword() async {
+    final result = await Navigator.pushNamed(context, '/passwordGenerator');
+
+    if (result is String) {
+      setState(() {
+        _passwordController.text = result;
+      });
+    }
   }
 
   void _addCustomField() {

@@ -37,8 +37,9 @@
 3. **运行应用**
    - Android：`flutter run -d android`
    - iOS：`flutter run -d ios`
-   - Web：`flutter run -d web`
    - 桌面：`flutter run -d macos` 或 `flutter run -d windows` 或 `flutter run -d linux`
+
+   本项目默认禁止在 Web 平台运行，因为 Web 平台不支持本地文件存储。
 
 ## 技术架构
 
@@ -87,6 +88,7 @@ pass_clip/
 ├── macos/               # macOS 项目目录
 ├── web/                 # Web 项目目录
 ├── windows/             # Windows 项目目录
+├── LICENSE              # 开源协议
 ├── README_IMAGES/       # 文档图片
 ├── pubspec.yaml         # 依赖配置
 └── README.md            # 项目说明
@@ -111,5 +113,5 @@ pass_clip/
 - 分发时需保留原版权声明与协议文本
 - 禁止用「pass_clip」或作者名做推广背书（需书面授权）
 
-完整协议文本请见项目根目录的 (LICENSE)[LICENSE] 文件。
+完整协议文本请见项目根目录的 LICENSE 文件。
 
