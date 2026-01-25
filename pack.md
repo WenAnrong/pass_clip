@@ -18,7 +18,7 @@
 
 需要先安装的包
 ```shell
-dart pub global activate fastforge  # 打包专用
+dart pub global activate fastforge
 ```
 
 打包命令：
@@ -95,3 +95,16 @@ npm install -g appdmg
 将下载的简体中文包放入 inno 软件的目录下的 `Languages` 里就行。
 
 ### linux
+
+打包前需要安装的包：这里以我的debian13为例子
+```shell
+sudo apt install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev  # 基础环境
+sudo apt install libsecret-1-dev binutils lld llvm-19-dev libfuse2 locate  # 必须库
+```
+
+要安装 Appimage Builder，请运行：
+```shell
+wget -O appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+chmod +x appimagetool
+sudo mv appimagetool /usr/local/bin/
+```
