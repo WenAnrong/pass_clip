@@ -1,0 +1,20 @@
+display_name: 秘荚
+
+icon: lib/assets/icon/icon-512x512-linux.png
+
+keywords:
+  - Application
+  - System
+  - Password
+  - 系统
+  - 密码
+  - 应用
+
+generic_name: 实用工具
+
+categories:
+  - Utility
+
+startup_notify: true
+
+include: []

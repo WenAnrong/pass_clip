@@ -93,3 +93,5 @@ npm install -g appdmg
 然后去这里下载简体中文的语言包（不下载的话打包时会报错）：[https://jrsoftware.org/files/istrans/](https://jrsoftware.org/files/istrans/)
 
 将下载的简体中文包放入 inno 软件的目录下的 `Languages` 里就行。
+
+### linux

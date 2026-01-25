@@ -118,9 +118,6 @@ flutter_launcher_icons:
   windows:
     generate: true
     image_path: "lib/assets/icon/icon-1024x1024-15c.png"
-  linux:
-    generate: true
-    image_path: "lib/assets/icon/icon-1024x1024-20c.png"
 
 # change_app_package_name 的使用
 # flutter pub run change_app_package_name:main cn.iamwar.pass_clip

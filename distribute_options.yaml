@@ -34,7 +34,15 @@ releases:
   - name: windows
     jobs:
       # ========== windows 打包配置 ==========
-      - name: build-windows-dmg
+      - name: build-windows-exe
         package:
           platform: windows
           target: exe
+
+  - name: linux
+    jobs:
+      # ========== linux 打包配置 ==========
+      - name: build-linux-appimage
+        package:
+          platform: linux
+          target: appimage
