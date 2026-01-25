@@ -25,9 +25,16 @@ releases:
   - name: mac
     jobs:
       # ========== macOS 打包配置 ==========
-      # 打包 macOS DMG
       - name: build-macos-dmg
         package:
           platform: macos
           target: dmg
           # dart-define: MACOS_ARCH=arm64  加入这个则只打包 apple 芯片的，不加则apple和intel通用
+
+  - name: windows
+    jobs:
+      # ========== windows 打包配置 ==========
+      - name: build-windows-dmg
+        package:
+          platform: windows
+          target: exe

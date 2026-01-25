@@ -12,14 +12,13 @@
 - versionCode=2
 - versionName=1.0.0
 
-## 统一打包命令和配置
+## 统一打包命令
 
 可在 distribute_options.yaml 统一配置所以平台的打包命令。
 
 需要先安装的包
 ```shell
 dart pub global activate fastforge  # 打包专用
-npm install -g appdmg               # mac打包成dmg专用
 ```
 
 打包命令：
@@ -37,7 +36,8 @@ fastforge release --name linux   # linux
 
 1. 清理Flutter构建缓存
 ```shell
-flutter clean && flutter pub get
+flutter clean
+flutter pub get
 ```
 
 2. 删除Fastforge打包产物目录
@@ -46,6 +46,7 @@ rm -rf dist/
 ```
 
 ## 相关配置
+
 ### android 平台
 
 要将 `my_app_key.jks` 和 `key.properties` 放到 `android/`目录下。
@@ -66,6 +67,11 @@ flutter pub run change_app_package_name:main cn.iamwar.pass_clip
 
 ### macos
 
+打包前需要安装的包
+```shell
+npm install -g appdmg
+```
+
 如果要修改包名，请用xcode打开macos文件夹项目，然后修改：
 
 1. 点击左侧 Runner
@@ -78,3 +84,12 @@ flutter pub run change_app_package_name:main cn.iamwar.pass_clip
 1. 打开 macos/Runner.xcodeproj，选中左侧的 Runner 工程
 2. 切换到 Project → Build Settings 标签页
 3. 修改 `PRODUCT_COPYRIGHT` 字段 
+
+
+### windows
+
+打包前需要安装的包: [inno](https://jrsoftware.org/)
+
+然后去这里下载简体中文的语言包（不下载的话打包时会报错）：[https://jrsoftware.org/files/istrans/](https://jrsoftware.org/files/istrans/)
+
+将下载的简体中文包放入 inno 软件的目录下的 `Languages` 里就行。
