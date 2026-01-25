@@ -1,0 +1,30 @@
+# 官方文档： https://fastforge.dev/zh/
+# 打包产物输出目录
+output: dist/
+# 定义打包任务集合
+releases:
+  - name: pack
+    jobs:
+      # ========== Android 打包配置 ==========
+      # 打包 Android APK
+      - name: build-android-apk
+        package:
+          platform: android
+          target: apk
+          build_args:
+            # 可选：指定CPU架构，默认包含arm/arm64/x86等，按需精简
+            target-platform: android-arm64
+      #打包 Android AAB（Google Play 上架用）
+      - name: build-android-aab
+        package:
+          platform: android
+          target: aab
+          build_args:
+            target-platform: android-arm64
+      # ========== macOS 打包配置 ==========
+      # 打包 macOS DMG
+      - name: build-macos-dmg
+        package:
+          platform: macos
+          target: dmg
+          # dart-define: MACOS_ARCH=arm64  加入这个则只打包 apple 芯片的，不加则apple和intel通用

@@ -12,9 +12,24 @@
 - versionCode=2
 - versionName=1.0.0
 
-## android 平台
+## 统一打包命令和配置
 
-### 基本步骤
+可在 distribute_options.yaml 统一配置所以平台的打包命令。
+
+需要先安装的包
+```bash
+dart pub global activate fastforge  # 打包专用
+npm install -g appdmg               # mac打包成dmg专用
+```
+
+打包命令：
+```bash
+fastforge release --name pack
+```
+用此打包命令前请确保flutter原本的打包命令可用才行
+
+## 相关配置
+### android 平台
 
 要将 `my_app_key.jks` 和 `key.properties` 放到 `android/`目录下。
 
@@ -25,12 +40,19 @@ keyPassword=
 keyAlias=
 storeFile=./my_app_key.jks
 ```
-然后执行
+这样才能正常打包。
+
+如果需要改包名，请使用下面命令
 ```bash
-flutter build apk --release
+flutter pub run change_app_package_name:main cn.iamwar.pass_clip
 ```
-即可打包完成。
 
-### 说明
+### macos
 
-本项目打包安卓只会打包成arm64的，其他的如果想打包请去 `android/app/build.gradle.kts` 修改 `ndk.abiFilters.addAll(listOf("arm64-v8a"))` 这个部分
+如果要修改包名，请用xcode打开macos文件夹项目，然后修改：
+
+1. 点击左侧 Runner
+2. 点击右侧的 Signing & Capabilities
+3. 然后在 Bundle Identifier 填写包名
+
+如果要修改软件的显示名，请修改 `macos/Runner/Info.plist` 下的 `<key>CFBundleDisplayName</key>` 的名字，然后还要修改xcode打开后的general下的 `Display Name` 。

@@ -1,0 +1,13 @@
+# DMG 镜像打开后的窗口标题（自定义，比如你的应用名）
+title: 秘荚安装
+# DMG 内的文件布局（固定基础结构，无需改坐标）
+contents:
+  - x: 448       # 「应用程序」快捷链接的 x 坐标
+    y: 344       # 「应用程序」快捷链接的 y 坐标
+    type: link   # 类型为「系统文件夹快捷链接」
+    path: "/Applications"  # 链接指向 macOS 的「应用程序」文件夹
+  - x: 192       # 你的 App 文件的 x 坐标
+    y: 344       # 你的 App 文件的 y 坐标
+    type: file   # 类型为「应用文件」
+    path: pass_clip.app  # App 文件名
+    name: 秘荚.app       # DMG 内显示的文件名

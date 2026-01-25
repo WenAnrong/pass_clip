@@ -69,10 +69,14 @@
 
 ### 修改包名
 
-这个插件可以帮助我们快速修改包名，命令如下
+这个插件可以帮助我们快速修改包名（ios和android的），命令如下
 ```bash
 flutter pub run change_app_package_name:main cn.iamwar.pass_clip
 ```
+
+## 打包
+
+请看[pack.md](pack.md)
 
 ### 修改图标
 
@@ -103,6 +107,7 @@ pass_clip/
 ├── macos/               # macOS 项目目录
 ├── web/                 # Web 项目目录
 ├── windows/             # Windows 项目目录
+├── distribute_options.yaml  # 打包配置
 ├── LICENSE              # 开源协议
 ├── README_IMAGES/       # 文档图片
 ├── pubspec.yaml         # 依赖配置
@@ -129,5 +134,5 @@ pass_clip/
 - 分发时需保留原版权声明与协议文本
 - 禁止用「pass_clip」或作者名做推广背书（需书面授权）
 
-完整协议文本请见项目根目录的 LICENSE 文件。
+完整协议文本请见项目根目录的 [LICENSE](LICENSE) 文件。
 

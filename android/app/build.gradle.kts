@@ -55,9 +55,6 @@ android {
         release {
             // 使用正式的release签名配置
             signingConfig = signingConfigs.getByName("release")
-            ndk.abiFilters.clear()
-            // 只保留arm的64位平台，其他的如果需要请自行添加
-            ndk.abiFilters.addAll(listOf("arm64-v8a"))
         }
         debug {
             signingConfig = signingConfigs.getByName("debug")
