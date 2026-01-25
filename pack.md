@@ -24,8 +24,13 @@ npm install -g appdmg               # mac打包成dmg专用
 
 打包命令：
 ```shell
-fastforge release --name pack
+fastforge release --name mobile   # 移动端
+fastforge release --name mac   # macos
+fastforge release --name windows  # windows
+fastforge release --name linux   # linux
 ```
+这样设计是为了适配各个平台，桌面平台只能打包本平台的应用
+
 用此打包命令前请确保flutter原本的打包命令可用才行。
 
 为防止打包报错，可通过这样的命令进行清理

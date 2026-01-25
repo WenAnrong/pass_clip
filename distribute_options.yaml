@@ -3,7 +3,7 @@
 output: dist/
 # 定义打包任务集合
 releases:
-  - name: pack
+  - name: mobile
     jobs:
       # ========== Android 打包配置 ==========
       # 打包 Android APK
@@ -21,6 +21,9 @@ releases:
           target: aab
           build_args:
             target-platform: android-arm64
+
+  - name: mac
+    jobs:
       # ========== macOS 打包配置 ==========
       # 打包 macOS DMG
       - name: build-macos-dmg
