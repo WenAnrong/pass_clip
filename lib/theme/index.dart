@@ -18,6 +18,8 @@ const Color darkSecondaryThemeColor = Color(0xFFE8F5E9);
 final appTheme = ThemeData(
   // 启用Material Design 3
   useMaterial3: true,
+  // 字体
+  fontFamily: 'NotoSansSC',
   // 基于指定的主题色生成整套协调的颜色体系
   colorScheme: ColorScheme.fromSeed(
     seedColor: primaryThemeColor,
@@ -73,6 +75,7 @@ final appTheme = ThemeData(
 // 暗色主题配置
 final darkAppTheme = ThemeData(
   useMaterial3: true,
+  fontFamily: 'NotoSansSC',
   colorScheme: ColorScheme.fromSeed(
     seedColor: darkPrimaryThemeColor,
     // 指定主色

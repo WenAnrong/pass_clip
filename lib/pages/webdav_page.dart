@@ -335,7 +335,6 @@ class _WebDAVPageState extends State<WebDAVPage> {
                     ],
                   ),
                   const SizedBox(height: 32.0),
-                  const Divider(),
                   const SizedBox(height: 16.0),
                   const Text(
                     '数据同步',
