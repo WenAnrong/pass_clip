@@ -17,16 +17,28 @@
 可在 distribute_options.yaml 统一配置所以平台的打包命令。
 
 需要先安装的包
-```bash
+```shell
 dart pub global activate fastforge  # 打包专用
 npm install -g appdmg               # mac打包成dmg专用
 ```
 
 打包命令：
-```bash
+```shell
 fastforge release --name pack
 ```
-用此打包命令前请确保flutter原本的打包命令可用才行
+用此打包命令前请确保flutter原本的打包命令可用才行。
+
+为防止打包报错，可通过这样的命令进行清理
+
+1. 清理Flutter构建缓存
+```shell
+flutter clean && flutter pub get
+```
+
+2. 删除Fastforge打包产物目录
+```shell
+rm -rf dist/
+```
 
 ## 相关配置
 ### android 平台
@@ -43,7 +55,7 @@ storeFile=./my_app_key.jks
 这样才能正常打包。
 
 如果需要改包名，请使用下面命令
-```bash
+```shell
 flutter pub run change_app_package_name:main cn.iamwar.pass_clip
 ```
 
@@ -56,3 +68,8 @@ flutter pub run change_app_package_name:main cn.iamwar.pass_clip
 3. 然后在 Bundle Identifier 填写包名
 
 如果要修改软件的显示名，请修改 `macos/Runner/Info.plist` 下的 `<key>CFBundleDisplayName</key>` 的名字，然后还要修改xcode打开后的general下的 `Display Name` 。
+
+如果要修改版权信息：
+1. 打开 macos/Runner.xcodeproj，选中左侧的 Runner 工程
+2. 切换到 Project → Build Settings 标签页
+3. 修改 `PRODUCT_COPYRIGHT` 字段 

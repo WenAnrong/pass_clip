@@ -24,13 +24,13 @@
 ### 安装与运行
 
 1. **克隆项目**
-   ```bash
+   ```shell
    git clone https://github.com/WenAnrong/pass_clip.git
    cd pass_clip
    ```
 
 2. **安装依赖**
-   ```bash
+   ```shell
    flutter pub get
    ```
 
@@ -70,13 +70,9 @@
 ### 修改包名
 
 这个插件可以帮助我们快速修改包名（ios和android的），命令如下
-```bash
+```shell
 flutter pub run change_app_package_name:main cn.iamwar.pass_clip
 ```
-
-## 打包
-
-请看[pack.md](pack.md)
 
 ### 修改图标
 
@@ -84,9 +80,13 @@ flutter pub run change_app_package_name:main cn.iamwar.pass_clip
 配置文件在 `pubspec.yaml` 中，修改 `flutter_launcher_icons` 部分即可。
 
 要更换应用图标可更换 `lib/assets/icons/` 目录下的图标文件。
-```bash
+```shell
 flutter pub run flutter_launcher_icons:main
 ```
+
+## 打包
+
+请看[pack.md](pack.md)
 
 ## 项目结构
 

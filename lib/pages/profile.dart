@@ -104,7 +104,11 @@ class ProfilePage extends StatelessWidget {
                         children: [
                           Text('版本号：1.0.0'),
                           SizedBox(height: 8.0),
-                          Text('开发信息：war'),
+                          Text('开发信息：WenAnrong'),
+                          SizedBox(height: 8.0,),
+                          Text('Copyright © 2026 WenAnrong.All Rights Reserved.'),
+                          SizedBox(height: 8.0,),
+                          Text('开源地址：https://github.com/WenAnrong/pass_clip')
                         ],
                       ),
                       actions: [
