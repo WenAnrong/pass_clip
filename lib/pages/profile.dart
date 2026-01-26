@@ -89,39 +89,10 @@ class ProfilePage extends StatelessWidget {
           Card(
             margin: const EdgeInsets.all(16.0),
             child: ListTile(
-              title: const Text('关于我们'),
+              title: const Text('关于'),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () {
-                // 关于我们页面
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('关于我们'),
-                      content: const Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('版本号：1.0.0'),
-                          SizedBox(height: 8.0),
-                          Text('开发信息：WenAnrong'),
-                          SizedBox(height: 8.0,),
-                          Text('Copyright © 2026 WenAnrong.All Rights Reserved.'),
-                          SizedBox(height: 8.0,),
-                          Text('开源地址：https://github.com/WenAnrong/pass_clip')
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text('确定'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                Navigator.pushNamed(context,'/about');
               },
             ),
           ),

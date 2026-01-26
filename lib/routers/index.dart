@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pass_clip/components/bottom_navigation.dart';
 import 'package:pass_clip/models/account.dart';
+import 'package:pass_clip/pages/about.dart';
 import 'package:pass_clip/pages/home.dart';
 import 'package:pass_clip/pages/initial_page.dart';
 import 'package:pass_clip/pages/account_management.dart';
@@ -32,5 +33,6 @@ class AppRouter {
     },
     '/webdav': (context) => const WebDAVPage(),
     '/passwordGenerator': (context) => const PasswordGeneratorPage(),
+    '/about': (context) => const About(),
   };
 }
